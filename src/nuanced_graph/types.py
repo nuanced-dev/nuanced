@@ -68,9 +68,9 @@ class FunctionAnnotation(BaseModel):
 
         return "\n".join(annotations)
 
-    def __repr__(self) -> str:
-        """This is a representation of the function as a symbol string in SCIP"""
-        ...
+    # def __repr__(self) -> str:
+    #     """This is a representation of the function as a symbol string in SCIP"""
+    #     ...
 
 
 class ModuleAnnotation(BaseModel):

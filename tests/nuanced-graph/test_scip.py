@@ -1,3 +1,4 @@
+from pathlib import Path
 from nuanced_graph.build.scip_pb2 import (
     Index,
     Metadata,
@@ -10,7 +11,7 @@ from nuanced_graph.build.scip_pb2 import (
 )
 import os
 import pytest
-from nuanced_graph.scip import symbol_to_path, Suffix
+from nuanced_graph.scip import convert_index, read_scip, symbol_to_path, Suffix
 
 
 def test_scip_roundtrip(tmp_path):
@@ -237,3 +238,20 @@ def test_symbol_to_path_descriptor_order(monkeypatch):
     symbol_str = "dummy_input"
     expected = "pkg.first.second.third.fifth"
     assert symbol_to_path(symbol_str) == expected
+
+
+def test_full_read():
+    index = read_scip(Path("tests/fixtures/test_package/fixture_class.scip"))
+    assert len(index.documents) == 1
+    assert len(index.documents[0].symbols) == 5
+
+    symbols = [s.symbol for s in index.documents[0].symbols]
+
+    assert "py . fixture_class . FixtureClass#" in symbols
+    assert "py . fixture_class . bar()." in symbols
+    assert "py . fixture_class . FixtureClass#foo()." in symbols
+
+    repo = convert_index(index, Path("tests/fixtures/test_package").absolute())
+    assert len(repo.packages) == 1
+    assert len(repo.packages[0].modules) == 1
+    assert len(repo.packages[0].modules[0].functions) == 2
