@@ -9,6 +9,8 @@ from nuanced_graph.build.scip_pb2 import (
     Relationship,
 )
 import os
+import pytest
+from nuanced_graph.scip import symbol_to_path, Suffix
 
 
 def test_scip_roundtrip(tmp_path):
@@ -124,3 +126,114 @@ def test_scip_roundtrip(tmp_path):
     )
     assert loaded_doc2.symbols[1].relationships[0].is_implementation
     assert loaded_doc2.symbols[1].relationships[0].is_reference
+
+
+# I'm not sure if this is the best way to test the symbol_to_path function.
+# we don't necessarily need to monkeypatch parse_symbol... but it works for now
+class FakePackage:
+    def __init__(self, name):
+        self.name = name
+
+
+class FakeDescriptor:
+    def __init__(self, name, suffix):
+        self.name = name
+        self.suffix = suffix
+
+
+class FakeSymbol:
+    def __init__(self, package, descriptors):
+        self.package = package
+        self.descriptors = descriptors
+
+
+# Test that if there is no package, the symbol is returned unchanged.
+def test_symbol_to_path_local(monkeypatch):
+    """Test that local symbols without package return the input string unchanged."""
+
+    def fake_parse_symbol(s):
+        return FakeSymbol(None, [])
+
+    monkeypatch.setattr("nuanced_graph.scip.parse_symbol", fake_parse_symbol)
+    symbol_str = "local_symbol_identifier"
+    assert symbol_to_path(symbol_str) == symbol_str
+
+
+# Test with a fully qualified symbol that has all relevant descriptor suffixes.
+def test_symbol_to_path_full_relevant(monkeypatch):
+    """Test symbol with package and all relevant descriptor suffixes."""
+
+    def fake_parse_symbol(s):
+        return FakeSymbol(
+            FakePackage("mypackage"),
+            [
+                FakeDescriptor("submodule", Suffix.Namespace),
+                FakeDescriptor("MyClass", Suffix.Type),
+                FakeDescriptor("myMethod", Suffix.Method),
+                FakeDescriptor("constant", Suffix.Term),
+            ],
+        )
+
+    monkeypatch.setattr("nuanced_graph.scip.parse_symbol", fake_parse_symbol)
+    symbol_str = "dummy_input"
+    expected = "mypackage.submodule.MyClass.myMethod.constant"
+    assert symbol_to_path(symbol_str) == expected
+
+
+# Test that descriptors with irrelevant suffixes are filtered out.
+def test_symbol_to_path_irrelevant(monkeypatch):
+    """Test that descriptors with irrelevant suffix are filtered out."""
+
+    def fake_parse_symbol(s):
+        return FakeSymbol(
+            FakePackage("mylib"),
+            [
+                FakeDescriptor("sub", Suffix.Namespace),
+                FakeDescriptor(
+                    "ignored", "Other"
+                ),  # Irrelevant suffix, should be ignored
+                FakeDescriptor("cls", Suffix.Type),
+            ],
+        )
+
+    monkeypatch.setattr("nuanced_graph.scip.parse_symbol", fake_parse_symbol)
+    symbol_str = "dummy_input"
+    expected = "mylib.sub.cls"
+    assert symbol_to_path(symbol_str) == expected
+
+
+# Test that if there are no descriptors, only the package name is returned.
+def test_symbol_to_path_only_package(monkeypatch):
+    """Test symbol with package but no descriptors."""
+
+    def fake_parse_symbol(s):
+        return FakeSymbol(FakePackage("simplepkg"), [])
+
+    monkeypatch.setattr("nuanced_graph.scip.parse_symbol", fake_parse_symbol)
+    symbol_str = "dummy_input"
+    expected = "simplepkg"
+    assert symbol_to_path(symbol_str) == expected
+
+
+# Test that the order of descriptors supplied is preserved in the output.
+def test_symbol_to_path_descriptor_order(monkeypatch):
+    """Test that the order of descriptors is preserved."""
+
+    def fake_parse_symbol(s):
+        return FakeSymbol(
+            FakePackage("pkg"),
+            [
+                FakeDescriptor("first", Suffix.Type),
+                FakeDescriptor("second", Suffix.Namespace),
+                FakeDescriptor("third", Suffix.Term),
+                FakeDescriptor(
+                    "fourth", "Other"
+                ),  # Irrelevant suffix, should be ignored
+                FakeDescriptor("fifth", Suffix.Method),
+            ],
+        )
+
+    monkeypatch.setattr("nuanced_graph.scip.parse_symbol", fake_parse_symbol)
+    symbol_str = "dummy_input"
+    expected = "pkg.first.second.third.fifth"
+    assert symbol_to_path(symbol_str) == expected
