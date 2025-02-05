@@ -11,7 +11,7 @@ def test_local_symbol_valid():
     assert sym.descriptors[0].suffix == Suffix.Local
 
 
-@pytest.mark.parametrize("s", ["local x 123", "local "])
+@pytest.mark.parametrize("s", ["local x 123", "local bar.baz", "local Foo#bar"])
 def test_local_symbol_invalid(s):
     with pytest.raises(ValueError):
         parse_symbol(s)

@@ -68,10 +68,6 @@ class FunctionAnnotation(BaseModel):
 
         return "\n".join(annotations)
 
-    # def __repr__(self) -> str:
-    #     """This is a representation of the function as a symbol string in SCIP"""
-    #     ...
-
 
 class ModuleAnnotation(BaseModel):
     """This corresponds to a "document" in SCIP"""
@@ -79,9 +75,17 @@ class ModuleAnnotation(BaseModel):
     package: "Package"  # a back-reference to the package this is a part of.
     module_path: str  # this is the module path in relation to the package path.
 
+    # these might be best as a dict (this one and the one in Package and Repo)
     functions: list[
         FunctionAnnotation
     ]  # the `._module` function is all the code that is not in a function.
+
+    def __getitem__(self, path: str) -> FunctionAnnotation:
+        """This is a helper function to get a function from the module by it's path"""
+        for f in self.functions:
+            if f.path == path:
+                return f
+        raise ValueError(f"Function {path} not found in module {self.module_path}")
 
 
 class Package(BaseModel):

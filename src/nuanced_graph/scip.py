@@ -19,11 +19,12 @@ def read_scip(path: Path) -> Index:
         return Index.FromString(f.read())
 
 
-def symbol_to_path(symbol_str: str) -> str:
+def symbol_to_path(symbol_str: str) -> str | None:
     """Convert a SCIP symbol string to a fully qualified path"""
     symbol = parse_symbol(symbol_str)
     if not symbol.package:
-        return symbol_str  # Handle local symbols
+        # if there is no package, the symbol is local, and we return None to denote this
+        return None  # Handle local symbols
 
     # Build path components
     components = []
@@ -46,6 +47,9 @@ def convert_document(doc: Document, package: NuancedPackage) -> ModuleAnnotation
     )
 
     # Process all symbols in the document
+
+    functions = []
+
     for symbol in doc.symbols:
         # Skip non-function symbols
         if symbol.kind not in (
@@ -58,6 +62,15 @@ def convert_document(doc: Document, package: NuancedPackage) -> ModuleAnnotation
         # Get the symbol path
         symbol_path = symbol_to_path(symbol.symbol)
 
+        if symbol_path is None:
+            # if the symbol is local, then it is a function reference
+            # we need to find the path of the function that is being referenced
+            # we do this by finding the enclosing symbol of the reference
+            # and then using the symbol_to_path function on that
+            enclosing_symbol = symbol.enclosing_symbol
+            symbol_path = symbol_to_path(enclosing_symbol)
+            assert symbol_path is not None
+
         # Find all relationships that are references (calls to other functions)
         callees = set()
         for rel in symbol.relationships:
@@ -65,19 +78,27 @@ def convert_document(doc: Document, package: NuancedPackage) -> ModuleAnnotation
                 callee_path = symbol_to_path(rel.symbol)
                 callees.add(callee_path)
 
-        # Create function annotation
-        func = FunctionAnnotation(
-            module=module,
-            path=symbol_path,
-            digest="",  # We don't have this information in SCIP
-            line_numbers=CodeRange(
-                begin=0,  # These would need to come from Occurrences if we used them
-                end=0,
-            ),
-            callees=callees,
-        )
+        # check to see if the function is already in the list of functions
+        for f in functions:
+            if f.path == symbol_path:
+                f.callees.update(callees)
+                break
+        else:
+            # if the function is not in the list of functions, then we add it
+            functions.append(
+                FunctionAnnotation(
+                    module=module,
+                    path=symbol_path,
+                    digest="",  # We don't have this information in SCIP
+                    line_numbers=CodeRange(
+                        begin=0,  # These would need to come from Occurrences if we used them
+                        end=0,
+                    ),
+                    callees=callees,
+                )
+            )
 
-        module.functions.append(func)
+    module.functions = functions
 
     return module
 

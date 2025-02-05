@@ -41,6 +41,7 @@ def write_fixture_class_to_scip():
     # For demonstration, assume kind 7 means a class (per SCIP spec)
     symbol_info_class.kind = scip.SymbolInformation.Kind.Class
 
+    # --- Manually add symbol for method foo ---
     symbol_info_foo = doc.symbols.add()
     symbol_info_foo.symbol = "py . fixture_class . FixtureClass#foo()."
     symbol_info_foo.display_name = "foo"
@@ -53,19 +54,20 @@ def write_fixture_class_to_scip():
     # For demonstration, assume kind 17 means a function (this is arbitrary for our test)
     symbol_info_bar.kind = scip.SymbolInformation.Kind.Function
 
+    # --- Manually create local symbols for function references ---
     symbol_info_bar_call_class = doc.symbols.add()
-    symbol_info_bar_call_class.symbol = "py . fixture_class . FixtureClass#"
+    symbol_info_bar_call_class.symbol = "local bar_FixtureClass"
     symbol_info_bar_call_class.kind = scip.SymbolInformation.Kind.Class
     symbol_info_bar_call_class.relationships.add(
-        symbol=symbol_info_class.symbol, is_definition=True
+        symbol=symbol_info_class.symbol, is_reference=True
     )
     symbol_info_bar_call_class.enclosing_symbol = symbol_info_bar.symbol
 
     symbol_info_bar_call_foo = doc.symbols.add()
-    symbol_info_bar_call_foo.symbol = "py . fixture_class . FixtureClass#foo()."
+    symbol_info_bar_call_foo.symbol = "local bar_FixtureClass_foo"
     symbol_info_bar_call_foo.kind = scip.SymbolInformation.Kind.Method
     symbol_info_bar_call_foo.relationships.add(
-        symbol=symbol_info_foo.symbol, is_definition=True
+        symbol=symbol_info_foo.symbol, is_reference=True
     )
     symbol_info_bar_call_foo.enclosing_symbol = symbol_info_bar.symbol
 

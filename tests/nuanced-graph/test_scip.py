@@ -1,7 +1,6 @@
 from pathlib import Path
 from nuanced_graph.build.scip_pb2 import (
     Index,
-    Metadata,
     ToolInfo,
     ProtocolVersion,
     TextEncoding,
@@ -10,7 +9,6 @@ from nuanced_graph.build.scip_pb2 import (
     Relationship,
 )
 import os
-import pytest
 from nuanced_graph.scip import convert_index, read_scip, symbol_to_path, Suffix
 
 
@@ -157,7 +155,7 @@ def test_symbol_to_path_local(monkeypatch):
 
     monkeypatch.setattr("nuanced_graph.scip.parse_symbol", fake_parse_symbol)
     symbol_str = "local_symbol_identifier"
-    assert symbol_to_path(symbol_str) == symbol_str
+    assert symbol_to_path(symbol_str) is None
 
 
 # Test with a fully qualified symbol that has all relevant descriptor suffixes.
@@ -255,3 +253,14 @@ def test_full_read():
     assert len(repo.packages) == 1
     assert len(repo.packages[0].modules) == 1
     assert len(repo.packages[0].modules[0].functions) == 2
+    functions = [f for f in repo.packages[0].modules[0].functions]
+    function_names = [f.path for f in functions]
+
+    assert "fixture_class.FixtureClass.foo" in function_names
+    assert "fixture_class.bar" in function_names
+
+    assert "local bar_FixtureClass" not in function_names
+
+    assert repo.packages[0].modules[0]["fixture_class.bar"].callees == {
+        "fixture_class.FixtureClass.foo"
+    }
