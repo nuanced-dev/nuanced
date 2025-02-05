@@ -1,0 +1,22 @@
+
+#
+	test_tool0.1tests/fixtures/É
+,tests/fixtures/test_package/fixture_class.py4
+"py . fixture_class . FixtureClass#(2FixtureClass1
+(py . fixture_class . FixtureClass#foo().(2foo$
+py . fixture_class . bar().(2bark
+"py . fixture_class . FixtureClass#"&
+"py . fixture_class . FixtureClass#((Bpy . fixture_class . bar().w
+(py . fixture_class . FixtureClass#foo().",
+(py . fixture_class . FixtureClass#foo().((Bpy . fixture_class . bar()."python*™from datetime import datetime
+
+
+class FixtureClass:
+    def foo(self) -> None:
+        datetime.tzinfo()
+
+
+def bar():
+    f = FixtureClass()
+    f.foo()
+0
