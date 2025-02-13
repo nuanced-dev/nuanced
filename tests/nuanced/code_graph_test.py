@@ -15,8 +15,9 @@ def test_init_with_valid_path(mocker) -> None:
     CodeGraph.init(path)
 
     filepaths = spy.call_args.args[1]
-    # TODO: flaky because `==` compares order
-    assert filepaths == expected_filepaths
+    assert len(filepaths) == len(expected_filepaths)
+    for p in filepaths:
+        assert p in expected_filepaths
 
 def test_init_with_valid_path_returns_code_graph(mocker) -> None:
     path = "tests/fixtures"
