@@ -11,8 +11,6 @@ def test_init_with_valid_path(mocker) -> None:
     spy = mocker.spy(CallGraph, "__init__")
     expected_filepaths = [
         os.path.abspath("tests/fixtures/fixture_class.py"),
-        os.path.abspath("tests/fixtures/other_fixture_class.py"),
-        os.path.abspath("tests/fixtures/foo.py"),
     ]
 
     CodeGraph.init(path)
