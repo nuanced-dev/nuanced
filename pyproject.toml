@@ -21,6 +21,7 @@ jarviscg = { git = "https://github.com/nuanced-dev/jarviscg" }
 
 [dependency-groups]
 dev = [
+    "deepdiff>=8.2.0",
     "pytest>=8.3.4",
     "pytest-mock>=3.14.0",
 ]
