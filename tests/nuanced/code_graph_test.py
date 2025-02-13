@@ -1,6 +1,6 @@
 import os
 import pytest
-from nuanced.core import CodeGraph
+from nuanced import CodeGraph
 from nuanced.lib.call_graph import CallGraph
 
 def test_init_with_valid_path(mocker) -> None:
