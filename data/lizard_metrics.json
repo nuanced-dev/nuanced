@@ -1,0 +1,10 @@
+{
+    "lines_of_code": 4,
+    "number_of_parameters": 1,
+    "cyclomatic_complexity": 4,
+    "logical_lines_of_code": 4,
+    "function": "deserialize",
+    "file": "src/sample.py",
+    "start_line": 1,
+    "end_line": 4
+}
