@@ -1,7 +1,7 @@
 [project]
 name = "nuanced"
 version = "0.1.0"
-description = "Add your description here"
+description = "Nuanced Python"
 readme = "README.md"
 authors = [
     { name = "Ayman Nadeem", email = "ayman@nuanced.dev" }
