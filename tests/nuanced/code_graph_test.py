@@ -4,7 +4,7 @@ from nuanced import CodeGraph
 from nuanced.lib.call_graph import CallGraph
 
 def test_init_with_valid_path(mocker) -> None:
-    mocker.patch("os.mkdir", lambda _dirname: None)
+    mocker.patch("os.mkdir", lambda _dirname, exist_ok=False: None)
     mock_file = mocker.mock_open()
     mocker.patch("builtins.open", mock_file)
     path = "tests/fixtures"
@@ -20,8 +20,24 @@ def test_init_with_valid_path(mocker) -> None:
     for p in filepaths:
         assert p in expected_filepaths
 
+def test_init_with_invalid_path_returns_errors(mocker) -> None:
+    invalid_path = "foo"
+
+    code_graph_result = CodeGraph.init(invalid_path)
+
+    assert code_graph_result.errors == [f"Directory not found: {os.path.abspath(invalid_path)}"]
+    assert code_graph_result.code_graph == None
+
+def test_init_with_no_eligible_files_returns_errors(mocker) -> None:
+    no_eligible_files_path = "tests/fixtures/ineligible"
+
+    code_graph_result = CodeGraph.init(no_eligible_files_path)
+
+    assert code_graph_result.errors == [f"No eligible files found in {os.path.abspath(no_eligible_files_path)}"]
+    assert code_graph_result.code_graph == None
+
 def test_init_with_valid_path_persists_code_graph(mocker) -> None:
-    mocker.patch("os.mkdir", lambda _dirname: None)
+    mocker.patch("os.mkdir", lambda _dirname, exist_ok=False: None)
     os_spy = mocker.spy(os, "mkdir")
     mock_file = mocker.mock_open()
     mocker.patch("builtins.open", mock_file)
@@ -34,7 +50,7 @@ def test_init_with_valid_path_persists_code_graph(mocker) -> None:
     mock_file.assert_called_with(f'{expected_path}/nuanced-graph.json', "w+")
 
 def test_init_with_valid_path_returns_code_graph(mocker) -> None:
-    mocker.patch("os.mkdir", lambda _dirname: None)
+    mocker.patch("os.mkdir", lambda _dirname, exist_ok=False: None)
     mock_file = mocker.mock_open()
     mocker.patch("builtins.open", mock_file)
     path = "tests/fixtures"
