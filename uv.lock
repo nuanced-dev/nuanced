@@ -47,8 +47,10 @@ wheels = [
 [[package]]
 name = "jarviscg"
 version = "0.1.0"
-source = { git = "https://github.com/nuanced-dev/jarviscg#030e696cf4ac514b842a10f2a793136d056674d0" }
+source = { git = "https://github.com/nuanced-dev/jarviscg.git#8456d8fff39a2c3e716a9bae27a7b9775f075be4" }
 dependencies = [
+    { name = "deepdiff" },
+    { name = "pytest" },
     { name = "setuptools", version = "75.3.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.9'" },
     { name = "setuptools", version = "75.8.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.9'" },
 ]
@@ -72,7 +74,6 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "deepdiff", specifier = ">=8.2.0" },
     { name = "jarviscg", git = "https://github.com/nuanced-dev/jarviscg" },
     { name = "setuptools", specifier = ">=75.3.0" },
 ]
