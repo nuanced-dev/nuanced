@@ -41,13 +41,13 @@ def test_init_with_valid_path_persists_code_graph(mocker) -> None:
     os_spy = mocker.spy(os, "mkdir")
     mock_file = mocker.mock_open()
     mocker.patch("builtins.open", mock_file)
-    expected_path = os.path.abspath("tests/fixtures/.nuanced")
+    expected_path = os.path.abspath(f"tests/fixtures/{CodeGraph.NUANCED_DIRNAME}")
 
     CodeGraph.init("tests/fixtures")
 
     received_dir_path = os_spy.call_args.args[0]
     assert received_dir_path == expected_path
-    mock_file.assert_called_with(f'{expected_path}/nuanced-graph.json', "w+")
+    mock_file.assert_called_with(f'{expected_path}/{CodeGraph.NUANCED_GRAPH_FILENAME', "w+")
 
 def test_init_with_valid_path_returns_code_graph(mocker) -> None:
     mocker.patch("os.mkdir", lambda _dirname, exist_ok=False: None)
@@ -63,3 +63,12 @@ def test_init_with_valid_path_returns_code_graph(mocker) -> None:
 
     assert errors == []
     assert code_graph
+
+def test_init_timeout_returns_errors(mocker) -> None:
+    path = "tests/fixtures"
+    mocker.patch("nuanced.CodeGraph.INIT_TIMEOUT_SECONDS", 0)
+
+    code_graph_result = CodeGraph.init(path)
+    errors = code_graph_result.errors
+
+    assert errors == ["Timed out"]
