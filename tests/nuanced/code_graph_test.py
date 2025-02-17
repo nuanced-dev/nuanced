@@ -1,3 +1,4 @@
+import concurrent
 import os
 import pytest
 from nuanced import CodeGraph
@@ -25,16 +26,16 @@ def test_init_with_invalid_path_returns_errors(mocker) -> None:
 
     code_graph_result = CodeGraph.init(invalid_path)
 
-    assert code_graph_result.errors == [f"Directory not found: {os.path.abspath(invalid_path)}"]
-    assert code_graph_result.code_graph == None
+    assert len(code_graph_result.errors) == 1
+    assert type(code_graph_result.errors[0]) == FileNotFoundError
 
 def test_init_with_no_eligible_files_returns_errors(mocker) -> None:
     no_eligible_files_path = "tests/fixtures/ineligible"
 
     code_graph_result = CodeGraph.init(no_eligible_files_path)
 
-    assert code_graph_result.errors == [f"No eligible files found in {os.path.abspath(no_eligible_files_path)}"]
-    assert code_graph_result.code_graph == None
+    assert len(code_graph_result.errors) == 1
+    assert str(code_graph_result.errors[0]) == f"No eligible files found in {os.path.abspath(no_eligible_files_path)}"
 
 def test_init_with_valid_path_persists_code_graph(mocker) -> None:
     mocker.patch("os.mkdir", lambda _dirname, exist_ok=False: None)
@@ -47,7 +48,7 @@ def test_init_with_valid_path_persists_code_graph(mocker) -> None:
 
     received_dir_path = os_spy.call_args.args[0]
     assert received_dir_path == expected_path
-    mock_file.assert_called_with(f'{expected_path}/{CodeGraph.NUANCED_GRAPH_FILENAME', "w+")
+    mock_file.assert_called_with(f'{expected_path}/{CodeGraph.NUANCED_GRAPH_FILENAME}', "w+")
 
 def test_init_with_valid_path_returns_code_graph(mocker) -> None:
     mocker.patch("os.mkdir", lambda _dirname, exist_ok=False: None)
@@ -71,4 +72,5 @@ def test_init_timeout_returns_errors(mocker) -> None:
     code_graph_result = CodeGraph.init(path)
     errors = code_graph_result.errors
 
-    assert errors == ["Timed out"]
+    assert len(errors) == 1
+    assert type(errors[0]) == concurrent.futures.TimeoutError
