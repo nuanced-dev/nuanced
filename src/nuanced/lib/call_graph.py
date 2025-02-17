@@ -29,5 +29,5 @@ class CallGraph():
         self.call_graph.analyze()
 
     def to_dict(self) -> dict:
-        formatter = formats.Simple(self.call_graph)
+        formatter = formats.Nuanced(self.call_graph)
         return formatter.generate()
