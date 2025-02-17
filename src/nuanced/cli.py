@@ -12,8 +12,13 @@ def enrich(function_definition_path: str):
 def init(path: str):
     abspath = os.path.abspath(path)
     print(f"Initializing {abspath}")
-    CodeGraph.init(abspath)
-    print("Done")
+    result = CodeGraph.init(abspath)
+
+    if len(result.errors) > 0:
+        for error in result.errors:
+            print(str(error))
+    else:
+        print("Done")
 
 def main():
     app()
