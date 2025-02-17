@@ -1,6 +1,7 @@
 from collections import namedtuple
 from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 import concurrent.futures
+import errno
 import glob
 import json
 import os
@@ -20,7 +21,12 @@ class CodeGraph():
         absolute_path = os.path.abspath(path)
 
         if not os.path.isdir(absolute_path):
-            errors.append(f"Directory not found: {absolute_path}")
+            error = FileNotFoundError(
+                errno.ENOENT,
+                os.strerror(errno.ENOENT),
+                absolute_path
+            )
+            errors.append(error)
             code_graph = None
         else:
             eligible_filepaths = glob.glob(
@@ -30,7 +36,8 @@ class CodeGraph():
                 )
             eligible_absolute_filepaths = [absolute_path + "/" + p for p in eligible_filepaths]
             if len(eligible_absolute_filepaths) == 0:
-                errors.append(f"No eligible files found in {absolute_path}")
+                error = ValueError(f"No eligible files found in {absolute_path}")
+                errors.append(error)
                 code_graph = None
             else:
                 with ThreadPoolExecutor() as executor:
@@ -53,7 +60,8 @@ class CodeGraph():
                             code_graph = None
                     else:
                         executor.shutdown(wait=False, cancel_futures=True)
-                        errors.append("Timed out")
+                        error = concurrent.futures.TimeoutError()
+                        errors.append(error)
                         code_graph = None
 
         return CodeGraphResult(errors, code_graph)
