@@ -1,11 +1,12 @@
 import concurrent
+import json
 import os
 import pytest
 from nuanced import CodeGraph
 from nuanced.lib.call_graph import CallGraph
 
 def test_init_with_valid_path(mocker) -> None:
-    mocker.patch("os.mkdir", lambda _dirname, exist_ok=False: None)
+    mocker.patch("os.makedirs", lambda _dirname, exist_ok=True: None)
     mock_file = mocker.mock_open()
     mocker.patch("builtins.open", mock_file)
     path = "tests/fixtures"
@@ -38,8 +39,8 @@ def test_init_with_no_eligible_files_returns_errors(mocker) -> None:
     assert str(code_graph_result.errors[0]) == f"No eligible files found in {os.path.abspath(no_eligible_files_path)}"
 
 def test_init_with_valid_path_persists_code_graph(mocker) -> None:
-    mocker.patch("os.mkdir", lambda _dirname, exist_ok=False: None)
-    os_spy = mocker.spy(os, "mkdir")
+    mocker.patch("os.makedirs", lambda _dirname, exist_ok=True: None)
+    os_spy = mocker.spy(os, "makedirs")
     mock_file = mocker.mock_open()
     mocker.patch("builtins.open", mock_file)
     expected_path = os.path.abspath(f"tests/fixtures/{CodeGraph.NUANCED_DIRNAME}")
@@ -51,7 +52,7 @@ def test_init_with_valid_path_persists_code_graph(mocker) -> None:
     mock_file.assert_called_with(f'{expected_path}/{CodeGraph.NUANCED_GRAPH_FILENAME}', "w+")
 
 def test_init_with_valid_path_returns_code_graph(mocker) -> None:
-    mocker.patch("os.mkdir", lambda _dirname, exist_ok=False: None)
+    mocker.patch("os.makedirs", lambda _dirname, exist_ok=True: None)
     mock_file = mocker.mock_open()
     mocker.patch("builtins.open", mock_file)
     path = "tests/fixtures"
@@ -74,3 +75,46 @@ def test_init_timeout_returns_errors(mocker) -> None:
 
     assert len(errors) == 1
     assert type(errors[0]) == concurrent.futures.TimeoutError
+
+def test_enrich_with_invalid_function_path() -> None:
+    graph = json.loads('{ "foo.bar": { "filepath": "foo.py", "callees": [] } }')
+    nonexistent_function_path = "baz"
+    code_graph = CodeGraph(graph)
+
+    result = code_graph.enrich(nonexistent_function_path)
+
+    assert result == None
+
+def test_enrich_with_valid_function_path_returns_subgraph() -> None:
+    graph = json.loads('{ "foo.bar": { "filepath": "foo.py", "callees": ["hello.world"] }, "hello.world": { "filepath": "hello.py", "callees": [] }, "utils.util": { "filepath": "utils.py", "callees": [] } }')
+    expected_result = dict()
+    expected_result["foo.bar"] = graph["foo.bar"]
+    expected_result["hello.world"] = graph["hello.world"]
+    code_graph = CodeGraph(graph)
+
+    result = code_graph.enrich("foo.bar")
+
+    assert result == expected_result
+
+def test_enrich_with_valid_function_path_handles_cycles() -> None:
+    graph_with_cycle = json.loads('{ "foo.bar": { "filepath": "foo.py", "callees": ["hello.world"] }, "hello.world": { "filepath": "hello.py", "callees": ["utils.format"] }, "utils.util": { "filepath": "utils.py", "callees": [] }, "utils.format": { "filepath": "utils.py", "callees": ["foo.bar"] } }')
+    expected_result = dict()
+    expected_result["foo.bar"] = graph_with_cycle["foo.bar"]
+    expected_result["hello.world"] = graph_with_cycle["hello.world"]
+    expected_result["utils.format"] = graph_with_cycle["utils.format"]
+    code_graph = CodeGraph(graph_with_cycle)
+
+    result = code_graph.enrich("foo.bar")
+
+    assert result == expected_result
+
+def test_enrich_with_valid_function_path_handles_missing_nodes() -> None:
+    graph_with_missing_node = json.loads('{ "foo.bar": { "filepath": "foo.py", "callees": ["hello.world"] }, "hello.world": { "filepath": "hello.py", "callees": ["<builtin>.dict"] }, "utils.util": { "filepath": "utils.py", "callees": [] } }')
+    expected_result = dict()
+    expected_result["foo.bar"] = graph_with_missing_node["foo.bar"]
+    expected_result["hello.world"] = graph_with_missing_node["hello.world"]
+    code_graph = CodeGraph(graph_with_missing_node)
+
+    result = code_graph.enrich("foo.bar")
+
+    assert result == expected_result

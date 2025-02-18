@@ -49,12 +49,12 @@ class CodeGraph():
                         try:
                             call_graph_dict = call_graph.to_dict()
                             nuanced_dirpath = f'{absolute_path}/{cls.NUANCED_DIRNAME}'
-                            os.mkdir(nuanced_dirpath, exist_ok=True)
+                            os.makedirs(nuanced_dirpath, exist_ok=True)
 
                             nuanced_graph_file = open(f'{nuanced_dirpath}/{cls.NUANCED_GRAPH_FILENAME}', "w+")
                             nuanced_graph_file.write(json.dumps(call_graph_dict))
 
-                            code_graph = cls(call_graph=call_graph_dict)
+                            code_graph = cls(graph=call_graph_dict)
                         except Exception as e:
                             errors.append(str(e))
                             code_graph = None
@@ -66,5 +66,31 @@ class CodeGraph():
 
         return CodeGraphResult(errors, code_graph)
 
-    def __init__(self, call_graph=dict|None) -> None:
-        self.call_graph = call_graph
+    def __init__(self, graph:dict|None) -> None:
+        self.graph = graph
+
+    def enrich(self, function_path: str) -> dict|None:
+        subgraph = dict()
+        visited = set()
+        function_entry = self.graph.get(function_path)
+
+        if function_entry:
+            subgraph[function_path] = function_entry
+            callees = set(subgraph[function_path].get("callees"))
+            visited.add(function_path)
+
+            while len(callees) > 0:
+                callee_function_path = callees.pop()
+
+                if callee_function_path not in visited:
+                    visited.add(callee_function_path)
+
+                    if callee_function_path in self.graph:
+                        subgraph[callee_function_path] = self.graph.get(callee_function_path)
+                        callee_entry = subgraph.get(callee_function_path)
+
+                        if callee_entry:
+                            callee_callees = set(callee_entry["callees"])
+                            callees.update(callee_callees)
+
+            return subgraph
