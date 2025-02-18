@@ -54,7 +54,7 @@ class CodeGraph():
                             nuanced_graph_file = open(f'{nuanced_dirpath}/{cls.NUANCED_GRAPH_FILENAME}', "w+")
                             nuanced_graph_file.write(json.dumps(call_graph_dict))
 
-                            code_graph = cls(call_graph=call_graph_dict)
+                            code_graph = cls(graph=call_graph_dict)
                         except Exception as e:
                             errors.append(str(e))
                             code_graph = None
@@ -66,13 +66,13 @@ class CodeGraph():
 
         return CodeGraphResult(errors, code_graph)
 
-    def __init__(self, call_graph:dict|None) -> None:
-        self.call_graph = call_graph
+    def __init__(self, graph:dict|None) -> None:
+        self.graph = graph
 
     def enrich(self, function_path: str) -> dict|None:
         subgraph = dict()
         visited = set()
-        function_entry = self.call_graph.get(function_path)
+        function_entry = self.graph.get(function_path)
 
         if function_entry:
             subgraph[function_path] = function_entry
@@ -85,8 +85,8 @@ class CodeGraph():
                 if callee_function_path not in visited:
                     visited.add(callee_function_path)
 
-                    if callee_function_path in self.call_graph:
-                        subgraph[callee_function_path] = self.call_graph.get(callee_function_path)
+                    if callee_function_path in self.graph:
+                        subgraph[callee_function_path] = self.graph.get(callee_function_path)
                         callee_entry = subgraph.get(callee_function_path)
 
                         if callee_entry:

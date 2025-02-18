@@ -10,7 +10,7 @@ def enrich(function_definition_path: str):
     nuanced_graph_path = os.path.abspath(".nuanced/nuanced-graph.json")
     nuanced_graph_file = open(nuanced_graph_path, "r")
     call_graph = json.load(nuanced_graph_file)
-    code_graph = CodeGraph(call_graph=call_graph)
+    code_graph = CodeGraph(graph=call_graph)
     result = code_graph.enrich(function_definition_path)
 
     if not result:
