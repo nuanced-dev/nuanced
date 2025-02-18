@@ -66,5 +66,31 @@ class CodeGraph():
 
         return CodeGraphResult(errors, code_graph)
 
-    def __init__(self, call_graph=dict|None) -> None:
+    def __init__(self, call_graph:dict|None) -> None:
         self.call_graph = call_graph
+
+    def enrich(self, function_path: str) -> dict|None:
+        subgraph = dict()
+        visited = set()
+        function_entry = self.call_graph.get(function_path)
+
+        if function_entry:
+            subgraph[function_path] = function_entry
+            callees = set(subgraph[function_path].get("callees"))
+            visited.add(function_path)
+
+            while len(callees) > 0:
+                callee_function_path = callees.pop()
+
+                if callee_function_path not in visited:
+                    visited.add(callee_function_path)
+
+                    if callee_function_path in self.call_graph:
+                        subgraph[callee_function_path] = self.call_graph.get(callee_function_path)
+                        callee_entry = subgraph.get(callee_function_path)
+
+                        if callee_entry:
+                            callee_callees = set(callee_entry["callees"])
+                            callees.update(callee_callees)
+
+            return subgraph
