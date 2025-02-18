@@ -49,7 +49,7 @@ class CodeGraph():
                         try:
                             call_graph_dict = call_graph.to_dict()
                             nuanced_dirpath = f'{absolute_path}/{cls.NUANCED_DIRNAME}'
-                            os.mkdir(nuanced_dirpath, exist_ok=True)
+                            os.makedirs(nuanced_dirpath, exist_ok=True)
 
                             nuanced_graph_file = open(f'{nuanced_dirpath}/{cls.NUANCED_GRAPH_FILENAME}', "w+")
                             nuanced_graph_file.write(json.dumps(call_graph_dict))

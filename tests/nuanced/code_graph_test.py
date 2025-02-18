@@ -5,7 +5,7 @@ from nuanced import CodeGraph
 from nuanced.lib.call_graph import CallGraph
 
 def test_init_with_valid_path(mocker) -> None:
-    mocker.patch("os.mkdir", lambda _dirname, exist_ok=False: None)
+    mocker.patch("os.makedirs", lambda _dirname, exist_ok=True: None)
     mock_file = mocker.mock_open()
     mocker.patch("builtins.open", mock_file)
     path = "tests/fixtures"
@@ -38,8 +38,8 @@ def test_init_with_no_eligible_files_returns_errors(mocker) -> None:
     assert str(code_graph_result.errors[0]) == f"No eligible files found in {os.path.abspath(no_eligible_files_path)}"
 
 def test_init_with_valid_path_persists_code_graph(mocker) -> None:
-    mocker.patch("os.mkdir", lambda _dirname, exist_ok=False: None)
-    os_spy = mocker.spy(os, "mkdir")
+    mocker.patch("os.makedirs", lambda _dirname, exist_ok=True: None)
+    os_spy = mocker.spy(os, "makedirs")
     mock_file = mocker.mock_open()
     mocker.patch("builtins.open", mock_file)
     expected_path = os.path.abspath(f"tests/fixtures/{CodeGraph.NUANCED_DIRNAME}")
@@ -51,7 +51,7 @@ def test_init_with_valid_path_persists_code_graph(mocker) -> None:
     mock_file.assert_called_with(f'{expected_path}/{CodeGraph.NUANCED_GRAPH_FILENAME}', "w+")
 
 def test_init_with_valid_path_returns_code_graph(mocker) -> None:
-    mocker.patch("os.mkdir", lambda _dirname, exist_ok=False: None)
+    mocker.patch("os.makedirs", lambda _dirname, exist_ok=True: None)
     mock_file = mocker.mock_open()
     mocker.patch("builtins.open", mock_file)
     path = "tests/fixtures"
