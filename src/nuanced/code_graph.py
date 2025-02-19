@@ -72,9 +72,10 @@ class CodeGraph():
         self.graph = graph
 
     def enrich(self, filepath: str, function_name: str) -> EnrichmentResult:
+        absolute_filepath = os.path.abspath(filepath)
         graph_nodes_grouped_by_filepath = {k: [v[0] for v in v] for k, v in groupby(self.graph.items(), lambda x: x[1]["filepath"])}
         entrypoint_node_key = None
-        function_names = graph_nodes_grouped_by_filepath.get(filepath, [])
+        function_names = graph_nodes_grouped_by_filepath.get(absolute_filepath, [])
         entrypoint_node_keys = [n for n in function_names if n.endswith(function_name)]
 
         if len(entrypoint_node_keys) > 1:
