@@ -1,5 +1,6 @@
 from collections import namedtuple
 from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
+from itertools import groupby
 import concurrent.futures
 import errno
 import glob
@@ -69,15 +70,23 @@ class CodeGraph():
     def __init__(self, graph:dict|None) -> None:
         self.graph = graph
 
-    def enrich(self, function_path: str) -> dict|None:
+    def enrich(self, filepath: str, function_name: str) -> dict|None:
+        graph_nodes_grouped_by_filepath = {k: [v[0] for v in v] for k, v in groupby(self.graph.items(), lambda x: x[1]["filepath"])}
         subgraph = dict()
         visited = set()
-        function_entry = self.graph.get(function_path)
+        function_entry_key = None
+        n = graph_nodes_grouped_by_filepath.get(filepath, [])
+
+        for item in n:
+            if item.endswith(function_name):
+                function_entry_key = item
+
+        function_entry = self.graph.get(function_entry_key)
 
         if function_entry:
-            subgraph[function_path] = function_entry
-            callees = set(subgraph[function_path].get("callees"))
-            visited.add(function_path)
+            subgraph[function_entry_key] = function_entry
+            callees = set(subgraph[function_entry_key].get("callees"))
+            visited.add(function_entry_key)
 
             while len(callees) > 0:
                 callee_function_path = callees.pop()

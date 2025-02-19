@@ -76,23 +76,34 @@ def test_init_timeout_returns_errors(mocker) -> None:
     assert len(errors) == 1
     assert type(errors[0]) == concurrent.futures.TimeoutError
 
-def test_enrich_with_invalid_function_path() -> None:
+def test_enrich_with_nonexistent_file() -> None:
     graph = json.loads('{ "foo.bar": { "filepath": "foo.py", "callees": [] } }')
-    nonexistent_function_path = "baz"
+    function_name = "bar"
+    nonexistent_filepath = "baz.py"
     code_graph = CodeGraph(graph)
 
-    result = code_graph.enrich(nonexistent_function_path)
+    result = code_graph.enrich(filepath=nonexistent_filepath, function_name=function_name)
 
     assert result == None
 
-def test_enrich_with_valid_function_path_returns_subgraph() -> None:
+def test_enrich_with_nonexistent_function_name() -> None:
+    graph = json.loads('{ "foo.bar": { "filepath": "foo.py", "callees": [] } }')
+    function_name = "baz"
+    nonexistent_filepath = "foo.py"
+    code_graph = CodeGraph(graph)
+
+    result = code_graph.enrich(filepath=nonexistent_filepath, function_name=function_name)
+
+    assert result == None
+
+def test_enrich_with_valid_input_returns_subgraph() -> None:
     graph = json.loads('{ "foo.bar": { "filepath": "foo.py", "callees": ["hello.world"] }, "hello.world": { "filepath": "hello.py", "callees": [] }, "utils.util": { "filepath": "utils.py", "callees": [] } }')
     expected_result = dict()
     expected_result["foo.bar"] = graph["foo.bar"]
     expected_result["hello.world"] = graph["hello.world"]
     code_graph = CodeGraph(graph)
 
-    result = code_graph.enrich("foo.bar")
+    result = code_graph.enrich(filepath="foo.py", function_name="bar")
 
     assert result == expected_result
 
@@ -104,7 +115,7 @@ def test_enrich_with_valid_function_path_handles_cycles() -> None:
     expected_result["utils.format"] = graph_with_cycle["utils.format"]
     code_graph = CodeGraph(graph_with_cycle)
 
-    result = code_graph.enrich("foo.bar")
+    result = code_graph.enrich(filepath="foo.py", function_name="bar")
 
     assert result == expected_result
 
@@ -115,6 +126,6 @@ def test_enrich_with_valid_function_path_handles_missing_nodes() -> None:
     expected_result["hello.world"] = graph_with_missing_node["hello.world"]
     code_graph = CodeGraph(graph_with_missing_node)
 
-    result = code_graph.enrich("foo.bar")
+    result = code_graph.enrich(filepath="foo.py", function_name="bar")
 
     assert result == expected_result
