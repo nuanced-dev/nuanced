@@ -71,15 +71,15 @@ class CodeGraph():
     def __init__(self, graph:dict|None) -> None:
         self.graph = graph
 
-    def enrich(self, filepath: str, function_name: str) -> EnrichmentResult:
-        absolute_filepath = os.path.abspath(filepath)
+    def enrich(self, file_path: str, function_name: str) -> EnrichmentResult:
+        absolute_filepath = os.path.abspath(file_path)
         graph_nodes_grouped_by_filepath = {k: [v[0] for v in v] for k, v in groupby(self.graph.items(), lambda x: x[1]["filepath"])}
         entrypoint_node_key = None
         function_names = graph_nodes_grouped_by_filepath.get(absolute_filepath, [])
         entrypoint_node_keys = [n for n in function_names if n.endswith(function_name)]
 
         if len(entrypoint_node_keys) > 1:
-            error = ValueError(f"Multiple definitions for {function_name} found in {filepath}: {', '.join(entrypoint_node_keys)}")
+            error = ValueError(f"Multiple definitions for {function_name} found in {file_path}: {', '.join(entrypoint_node_keys)}")
             return EnrichmentResult(errors=[error], result=None)
 
         if len(entrypoint_node_keys) == 0:
