@@ -73,26 +73,31 @@ class CodeGraph():
 
     def enrich(self, filepath: str, function_name: str) -> EnrichmentResult:
         graph_nodes_grouped_by_filepath = {k: [v[0] for v in v] for k, v in groupby(self.graph.items(), lambda x: x[1]["filepath"])}
-        subgraph = dict()
-        visited = set()
-        function_entry_key = None
+        entrypoint_node_key = None
         function_names = graph_nodes_grouped_by_filepath.get(filepath, [])
-        function_entry_keys = [n for n in function_names if n.endswith(function_name)]
+        entrypoint_node_keys = [n for n in function_names if n.endswith(function_name)]
 
-        if len(function_entry_keys) > 1:
-            error = ValueError(f"Multiple definitions for {function_name} found in {filepath}: {', '.join(function_entry_keys)}")
+        if len(entrypoint_node_keys) > 1:
+            error = ValueError(f"Multiple definitions for {function_name} found in {filepath}: {', '.join(entrypoint_node_keys)}")
             return EnrichmentResult(errors=[error], result=None)
 
-        if len(function_entry_keys) == 0:
+        if len(entrypoint_node_keys) == 0:
             return EnrichmentResult(errors=[], result=None)
 
-        function_entry_key = function_entry_keys[0]
-        function_entry = self.graph.get(function_entry_key)
+        entrypoint_node_key = entrypoint_node_keys[0]
+        subgraph = self._build_subgraph(entrypoint_node_key)
 
-        if function_entry:
-            subgraph[function_entry_key] = function_entry
-            callees = set(subgraph[function_entry_key].get("callees"))
-            visited.add(function_entry_key)
+        return EnrichmentResult(errors=[], result=subgraph)
+
+    def _build_subgraph(self, entrypoint_node_key: str) -> dict|None:
+        subgraph = dict()
+        visited = set()
+        entrypoint_node = self.graph.get(entrypoint_node_key)
+
+        if entrypoint_node:
+            subgraph[entrypoint_node_key] = entrypoint_node
+            callees = set(subgraph[entrypoint_node_key].get("callees"))
+            visited.add(entrypoint_node_key)
 
             while len(callees) > 0:
                 callee_function_path = callees.pop()
@@ -108,7 +113,4 @@ class CodeGraph():
                             callee_callees = set(callee_entry["callees"])
                             callees.update(callee_callees)
 
-            return EnrichmentResult(errors=[], result=subgraph)
-        else:
-            return EnrichmentResult(errors=[], result=None)
-
+            return subgraph
