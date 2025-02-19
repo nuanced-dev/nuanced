@@ -84,7 +84,7 @@ def test_enrich_with_nonexistent_file() -> None:
 
     result = code_graph.enrich(filepath=nonexistent_filepath, function_name=function_name)
 
-    assert result == None
+    assert result.result == None
 
 def test_enrich_with_nonexistent_function_name() -> None:
     graph = json.loads('{ "foo.bar": { "filepath": "foo.py", "callees": [] } }')
@@ -94,7 +94,7 @@ def test_enrich_with_nonexistent_function_name() -> None:
 
     result = code_graph.enrich(filepath=nonexistent_filepath, function_name=function_name)
 
-    assert result == None
+    assert result.result == None
 
 def test_enrich_with_valid_input_returns_subgraph() -> None:
     graph = json.loads('{ "foo.bar": { "filepath": "foo.py", "callees": ["hello.world"] }, "hello.world": { "filepath": "hello.py", "callees": [] }, "utils.util": { "filepath": "utils.py", "callees": [] } }')
@@ -105,7 +105,7 @@ def test_enrich_with_valid_input_returns_subgraph() -> None:
 
     result = code_graph.enrich(filepath="foo.py", function_name="bar")
 
-    assert result == expected_result
+    assert result.result == expected_result
 
 def test_enrich_with_valid_function_path_handles_cycles() -> None:
     graph_with_cycle = json.loads('{ "foo.bar": { "filepath": "foo.py", "callees": ["hello.world"] }, "hello.world": { "filepath": "hello.py", "callees": ["utils.format"] }, "utils.util": { "filepath": "utils.py", "callees": [] }, "utils.format": { "filepath": "utils.py", "callees": ["foo.bar"] } }')
@@ -117,7 +117,7 @@ def test_enrich_with_valid_function_path_handles_cycles() -> None:
 
     result = code_graph.enrich(filepath="foo.py", function_name="bar")
 
-    assert result == expected_result
+    assert result.result == expected_result
 
 def test_enrich_with_valid_function_path_handles_missing_nodes() -> None:
     graph_with_missing_node = json.loads('{ "foo.bar": { "filepath": "foo.py", "callees": ["hello.world"] }, "hello.world": { "filepath": "hello.py", "callees": ["<builtin>.dict"] }, "utils.util": { "filepath": "utils.py", "callees": [] } }')
@@ -128,4 +128,15 @@ def test_enrich_with_valid_function_path_handles_missing_nodes() -> None:
 
     result = code_graph.enrich(filepath="foo.py", function_name="bar")
 
-    assert result == expected_result
+    assert result.result == expected_result
+
+def test_enrich_with_valid_function_path_handles_multiple_definitions() -> None:
+    graph = json.loads('{ "foo.class.bar": { "filepath": "foo.py", "callees": [] }, "foo.other_class.bar": { "filepath": "foo.py", "callees": ["hello.world"] }, "hello.world": { "filepath": "hello.py", "callees": ["<builtin>.dict"] } }')
+    filepath = "foo.py"
+    function_name = "bar"
+    code_graph = CodeGraph(graph)
+
+    result = code_graph.enrich(filepath=filepath, function_name=function_name)
+
+    assert len(result.errors) == 1
+    assert str(result.errors[0]) == f"Multiple definitions for {function_name} found in {filepath}: foo.class.bar, foo.other_class.bar"
