@@ -97,46 +97,55 @@ def test_enrich_with_nonexistent_function_name() -> None:
     assert result.result == None
 
 def test_enrich_with_valid_input_returns_subgraph() -> None:
-    graph = json.loads('{ "foo.bar": { "filepath": "foo.py", "callees": ["hello.world"] }, "hello.world": { "filepath": "hello.py", "callees": [] }, "utils.util": { "filepath": "utils.py", "callees": [] } }')
+    filepath1 = os.path.abspath("foo.py")
+    filepath2 = os.path.abspath("utils.py")
+    graph = { "foo.bar": { "filepath": filepath1, "callees": ["hello.world"] }, "hello.world": { "filepath": "hello.py", "callees": [] }, "utils.util": { "filepath": filepath2, "callees": [] } }
     expected_result = dict()
     expected_result["foo.bar"] = graph["foo.bar"]
     expected_result["hello.world"] = graph["hello.world"]
     code_graph = CodeGraph(graph)
 
-    result = code_graph.enrich(filepath="foo.py", function_name="bar")
+    result = code_graph.enrich(filepath=filepath1, function_name="bar")
 
     assert result.result == expected_result
 
 def test_enrich_with_valid_function_path_handles_cycles() -> None:
-    graph_with_cycle = json.loads('{ "foo.bar": { "filepath": "foo.py", "callees": ["hello.world"] }, "hello.world": { "filepath": "hello.py", "callees": ["utils.format"] }, "utils.util": { "filepath": "utils.py", "callees": [] }, "utils.format": { "filepath": "utils.py", "callees": ["foo.bar"] } }')
+    filepath1 = os.path.abspath("foo.py")
+    filepath2 = os.path.abspath("hello.py")
+    filepath3 = os.path.abspath("utils.py")
+    graph_with_cycle = { "foo.bar": { "filepath": filepath1, "callees": ["hello.world"] }, "hello.world": { "filepath": filepath2, "callees": ["utils.format"] }, "utils.util": { "filepath": "utils.py", "callees": [] }, "utils.format": { "filepath": filepath3, "callees": ["foo.bar"] } }
     expected_result = dict()
     expected_result["foo.bar"] = graph_with_cycle["foo.bar"]
     expected_result["hello.world"] = graph_with_cycle["hello.world"]
     expected_result["utils.format"] = graph_with_cycle["utils.format"]
     code_graph = CodeGraph(graph_with_cycle)
 
-    result = code_graph.enrich(filepath="foo.py", function_name="bar")
+    result = code_graph.enrich(filepath=filepath1, function_name="bar")
 
     assert result.result == expected_result
 
 def test_enrich_with_valid_function_path_handles_missing_nodes() -> None:
-    graph_with_missing_node = json.loads('{ "foo.bar": { "filepath": "foo.py", "callees": ["hello.world"] }, "hello.world": { "filepath": "hello.py", "callees": ["<builtin>.dict"] }, "utils.util": { "filepath": "utils.py", "callees": [] } }')
+    filepath1 = os.path.abspath("foo.py")
+    filepath2 = os.path.abspath("hello.py")
+    filepath3 = os.path.abspath("utils.py")
+    graph_with_missing_node = { "foo.bar": { "filepath": filepath1, "callees": ["hello.world"] }, "hello.world": { "filepath": filepath2, "callees": ["<builtin>.dict"] }, "utils.util": { "filepath": filepath3, "callees": [] } }
     expected_result = dict()
     expected_result["foo.bar"] = graph_with_missing_node["foo.bar"]
     expected_result["hello.world"] = graph_with_missing_node["hello.world"]
     code_graph = CodeGraph(graph_with_missing_node)
 
-    result = code_graph.enrich(filepath="foo.py", function_name="bar")
+    result = code_graph.enrich(filepath=filepath1, function_name="bar")
 
     assert result.result == expected_result
 
 def test_enrich_with_valid_function_path_handles_multiple_definitions() -> None:
-    graph = json.loads('{ "foo.class.bar": { "filepath": "foo.py", "callees": [] }, "foo.other_class.bar": { "filepath": "foo.py", "callees": ["hello.world"] }, "hello.world": { "filepath": "hello.py", "callees": ["<builtin>.dict"] } }')
-    filepath = "foo.py"
+    filepath1 = os.path.abspath("foo.py")
+    filepath2 = os.path.abspath("hello.py")
+    graph = { "foo.class.bar": { "filepath": filepath1, "callees": [] }, "foo.other_class.bar": { "filepath": filepath1, "callees": ["hello.world"] }, "hello.world": { "filepath": filepath2, "callees": ["<builtin>.dict"] } }
     function_name = "bar"
     code_graph = CodeGraph(graph)
 
-    result = code_graph.enrich(filepath=filepath, function_name=function_name)
+    result = code_graph.enrich(filepath=filepath1, function_name=function_name)
 
     assert len(result.errors) == 1
-    assert str(result.errors[0]) == f"Multiple definitions for {function_name} found in {filepath}: foo.class.bar, foo.other_class.bar"
+    assert str(result.errors[0]) == f"Multiple definitions for {function_name} found in {filepath1}: foo.class.bar, foo.other_class.bar"
