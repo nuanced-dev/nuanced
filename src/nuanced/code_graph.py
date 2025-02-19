@@ -9,6 +9,7 @@ import os
 from nuanced.lib.call_graph import CallGraph
 
 CodeGraphResult = namedtuple("CodeGraphResult", ["errors", "code_graph"])
+EnrichmentResult = namedtuple("EnrichmentResult", ["errors", "result"])
 
 class CodeGraph():
     ELIGIBLE_FILE_TYPE_PATTERN = "*.py"
@@ -70,17 +71,22 @@ class CodeGraph():
     def __init__(self, graph:dict|None) -> None:
         self.graph = graph
 
-    def enrich(self, filepath: str, function_name: str) -> dict|None:
+    def enrich(self, filepath: str, function_name: str) -> EnrichmentResult:
         graph_nodes_grouped_by_filepath = {k: [v[0] for v in v] for k, v in groupby(self.graph.items(), lambda x: x[1]["filepath"])}
         subgraph = dict()
         visited = set()
         function_entry_key = None
-        n = graph_nodes_grouped_by_filepath.get(filepath, [])
+        function_names = graph_nodes_grouped_by_filepath.get(filepath, [])
+        function_entry_keys = [n for n in function_names if n.endswith(function_name)]
 
-        for item in n:
-            if item.endswith(function_name):
-                function_entry_key = item
+        if len(function_entry_keys) > 1:
+            error = ValueError(f"Multiple definitions for {function_name} found in {filepath}: {', '.join(function_entry_keys)}")
+            return EnrichmentResult(errors=[error], result=None)
 
+        if len(function_entry_keys) == 0:
+            return EnrichmentResult(errors=[], result=None)
+
+        function_entry_key = function_entry_keys[0]
         function_entry = self.graph.get(function_entry_key)
 
         if function_entry:
@@ -102,4 +108,7 @@ class CodeGraph():
                             callee_callees = set(callee_entry["callees"])
                             callees.update(callee_callees)
 
-            return subgraph
+            return EnrichmentResult(errors=[], result=subgraph)
+        else:
+            return EnrichmentResult(errors=[], result=None)
+
