@@ -7,12 +7,12 @@ from nuanced import CodeGraph
 app = typer.Typer()
 
 @app.command()
-def enrich(filepath: str, function_name: str):
+def enrich(file_path: str, function_name: str):
     nuanced_graph_path = os.path.abspath(".nuanced/nuanced-graph.json")
     nuanced_graph_file = open(nuanced_graph_path, "r")
     call_graph = json.load(nuanced_graph_file)
     code_graph = CodeGraph(graph=call_graph)
-    result = code_graph.enrich(filepath=filepath, function_name=function_name)
+    result = code_graph.enrich(file_path=file_path, function_name=function_name)
 
     if len(result.errors) > 0:
         for error in result.errors:

@@ -82,7 +82,7 @@ def test_enrich_with_nonexistent_file() -> None:
     nonexistent_filepath = "baz.py"
     code_graph = CodeGraph(graph)
 
-    result = code_graph.enrich(filepath=nonexistent_filepath, function_name=function_name)
+    result = code_graph.enrich(file_path=nonexistent_filepath, function_name=function_name)
 
     assert result.result == None
 
@@ -92,7 +92,7 @@ def test_enrich_with_nonexistent_function_name() -> None:
     nonexistent_filepath = "foo.py"
     code_graph = CodeGraph(graph)
 
-    result = code_graph.enrich(filepath=nonexistent_filepath, function_name=function_name)
+    result = code_graph.enrich(file_path=nonexistent_filepath, function_name=function_name)
 
     assert result.result == None
 
@@ -105,7 +105,7 @@ def test_enrich_with_valid_input_returns_subgraph() -> None:
     expected_result["hello.world"] = graph["hello.world"]
     code_graph = CodeGraph(graph)
 
-    result = code_graph.enrich(filepath=filepath1, function_name="bar")
+    result = code_graph.enrich(file_path=filepath1, function_name="bar")
 
     assert result.result == expected_result
 
@@ -120,7 +120,7 @@ def test_enrich_with_valid_function_path_handles_cycles() -> None:
     expected_result["utils.format"] = graph_with_cycle["utils.format"]
     code_graph = CodeGraph(graph_with_cycle)
 
-    result = code_graph.enrich(filepath=filepath1, function_name="bar")
+    result = code_graph.enrich(file_path=filepath1, function_name="bar")
 
     assert result.result == expected_result
 
@@ -134,7 +134,7 @@ def test_enrich_with_valid_function_path_handles_missing_nodes() -> None:
     expected_result["hello.world"] = graph_with_missing_node["hello.world"]
     code_graph = CodeGraph(graph_with_missing_node)
 
-    result = code_graph.enrich(filepath=filepath1, function_name="bar")
+    result = code_graph.enrich(file_path=filepath1, function_name="bar")
 
     assert result.result == expected_result
 
@@ -145,7 +145,7 @@ def test_enrich_with_valid_function_path_handles_multiple_definitions() -> None:
     function_name = "bar"
     code_graph = CodeGraph(graph)
 
-    result = code_graph.enrich(filepath=filepath1, function_name=function_name)
+    result = code_graph.enrich(file_path=filepath1, function_name=function_name)
 
     assert len(result.errors) == 1
     assert str(result.errors[0]) == f"Multiple definitions for {function_name} found in {filepath1}: foo.class.bar, foo.other_class.bar"
