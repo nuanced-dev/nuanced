@@ -1,6 +1,7 @@
 import json
 import os
 import typer
+from rich import print
 from nuanced import CodeGraph
 
 app = typer.Typer()
@@ -16,7 +17,7 @@ def enrich(function_definition_path: str):
     if not result:
         print(f"\"{function_definition_path}\" not found")
     else:
-        print(json.dumps(result))
+        print(result)
 
 @app.command()
 def init(path: str):
