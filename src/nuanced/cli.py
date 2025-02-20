@@ -1,6 +1,7 @@
 import json
 import os
 import typer
+from rich import print
 from nuanced import CodeGraph
 
 app = typer.Typer()
