@@ -1,5 +1,6 @@
 from collections import namedtuple
 from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
+from itertools import groupby
 import concurrent.futures
 import errno
 import glob
@@ -8,6 +9,7 @@ import os
 from nuanced.lib.call_graph import CallGraph
 
 CodeGraphResult = namedtuple("CodeGraphResult", ["errors", "code_graph"])
+EnrichmentResult = namedtuple("EnrichmentResult", ["errors", "result"])
 
 class CodeGraph():
     ELIGIBLE_FILE_TYPE_PATTERN = "*.py"
@@ -69,15 +71,34 @@ class CodeGraph():
     def __init__(self, graph:dict|None) -> None:
         self.graph = graph
 
-    def enrich(self, function_path: str) -> dict|None:
+    def enrich(self, file_path: str, function_name: str) -> EnrichmentResult:
+        absolute_filepath = os.path.abspath(file_path)
+        graph_nodes_grouped_by_filepath = {k: [v[0] for v in v] for k, v in groupby(self.graph.items(), lambda x: x[1]["filepath"])}
+        entrypoint_node_key = None
+        function_names = graph_nodes_grouped_by_filepath.get(absolute_filepath, [])
+        entrypoint_node_keys = [n for n in function_names if n.endswith(function_name)]
+
+        if len(entrypoint_node_keys) > 1:
+            error = ValueError(f"Multiple definitions for {function_name} found in {file_path}: {', '.join(entrypoint_node_keys)}")
+            return EnrichmentResult(errors=[error], result=None)
+
+        if len(entrypoint_node_keys) == 0:
+            return EnrichmentResult(errors=[], result=None)
+
+        entrypoint_node_key = entrypoint_node_keys[0]
+        subgraph = self._build_subgraph(entrypoint_node_key)
+
+        return EnrichmentResult(errors=[], result=subgraph)
+
+    def _build_subgraph(self, entrypoint_node_key: str) -> dict|None:
         subgraph = dict()
         visited = set()
-        function_entry = self.graph.get(function_path)
+        entrypoint_node = self.graph.get(entrypoint_node_key)
 
-        if function_entry:
-            subgraph[function_path] = function_entry
-            callees = set(subgraph[function_path].get("callees"))
-            visited.add(function_path)
+        if entrypoint_node:
+            subgraph[entrypoint_node_key] = entrypoint_node
+            callees = set(subgraph[entrypoint_node_key].get("callees"))
+            visited.add(entrypoint_node_key)
 
             while len(callees) > 0:
                 callee_function_path = callees.pop()

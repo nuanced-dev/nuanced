@@ -7,17 +7,20 @@ from nuanced import CodeGraph
 app = typer.Typer()
 
 @app.command()
-def enrich(function_definition_path: str):
+def enrich(file_path: str, function_name: str):
     nuanced_graph_path = os.path.abspath(".nuanced/nuanced-graph.json")
     nuanced_graph_file = open(nuanced_graph_path, "r")
     call_graph = json.load(nuanced_graph_file)
     code_graph = CodeGraph(graph=call_graph)
-    result = code_graph.enrich(function_definition_path)
+    result = code_graph.enrich(file_path=file_path, function_name=function_name)
 
-    if not result:
-        print(f"\"{function_definition_path}\" not found")
+    if len(result.errors) > 0:
+        for error in result.errors:
+            print(str(error))
+    elif not result.result:
+        print(f"Function definition for filepath \"{filepath}\" and function name \"{function_name}\"  not found")
     else:
-        print(result)
+        print(json.dumps(result.result))
 
 @app.command()
 def init(path: str):
