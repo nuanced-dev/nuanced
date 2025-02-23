@@ -5,22 +5,21 @@ import pytest
 from nuanced import CodeGraph
 from nuanced.lib.call_graph import CallGraph
 
-def test_init_with_valid_path(mocker) -> None:
+def test_init_with_valid_path_sorts_eligible_files(mocker) -> None:
     mocker.patch("os.makedirs", lambda _dirname, exist_ok=True: None)
     mock_file = mocker.mock_open()
     mocker.patch("builtins.open", mock_file)
     path = "tests/fixtures"
     spy = mocker.spy(CallGraph, "__init__")
-    expected_filepaths = [
+    expected_filepaths = sorted([
         os.path.abspath("tests/fixtures/fixture_class.py"),
-    ]
+        os.path.abspath("tests/fixtures/another_fixture_class.py"),
+    ], key=os.path.getmtime)
 
     CodeGraph.init(path)
 
     filepaths = spy.call_args.args[1]
-    assert len(filepaths) == len(expected_filepaths)
-    for p in filepaths:
-        assert p in expected_filepaths
+    assert filepaths == expected_filepaths
 
 def test_init_with_invalid_path_returns_errors(mocker) -> None:
     invalid_path = "foo"

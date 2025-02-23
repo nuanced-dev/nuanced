@@ -32,18 +32,20 @@ class CodeGraph():
             code_graph = None
         else:
             eligible_filepaths = glob.glob(
-                    f'**/{cls.ELIGIBLE_FILE_TYPE_PATTERN}',
-                    root_dir=absolute_path,
-                    recursive=True
-                )
+                f'**/{cls.ELIGIBLE_FILE_TYPE_PATTERN}',
+                root_dir=absolute_path,
+                recursive=True
+            )
             eligible_absolute_filepaths = [absolute_path + "/" + p for p in eligible_filepaths]
-            if len(eligible_absolute_filepaths) == 0:
+            sorted_eligible_absolute_filepaths = sorted(eligible_absolute_filepaths, key=os.path.getmtime)
+
+            if len(sorted_eligible_absolute_filepaths) == 0:
                 error = ValueError(f"No eligible files found in {absolute_path}")
                 errors.append(error)
                 code_graph = None
             else:
                 with ThreadPoolExecutor() as executor:
-                    call_graph = CallGraph(eligible_absolute_filepaths)
+                    call_graph = CallGraph(sorted_eligible_absolute_filepaths)
                     future = executor.submit(call_graph.generate)
                     done, not_done = wait([future], timeout=cls.INIT_TIMEOUT_SECONDS, return_when=FIRST_COMPLETED)
 
