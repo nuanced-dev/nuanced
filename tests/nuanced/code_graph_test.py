@@ -1,26 +1,32 @@
-import concurrent
 import json
+import multiprocessing
 import os
 import pytest
+import nuanced
 from nuanced import CodeGraph
-from nuanced.lib.call_graph import CallGraph
+from nuanced.lib.call_graph import generate
+from nuanced.lib.utils import WithTimeoutResult
 
-def test_init_with_valid_path(mocker) -> None:
+def generate_call_graph(target, args, timeout):
+    call_graph_dict = target(entry_points=args)
+    return WithTimeoutResult(errors=[], value=call_graph_dict)
+
+def timeout_call_graph_generation(target, args, timeout):
+    errors = [multiprocessing.TimeoutError("Operation timed out")]
+    return WithTimeoutResult(errors=errors, value=None)
+
+def test_init_with_valid_path_generates_graph_with_expected_files(mocker) -> None:
     mocker.patch("os.makedirs", lambda _dirname, exist_ok=True: None)
     mock_file = mocker.mock_open()
     mocker.patch("builtins.open", mock_file)
+    mocker.patch("nuanced.code_graph.with_timeout", generate_call_graph)
+    call_graph_generate_spy = mocker.spy(nuanced.lib.call_graph, "generate")
     path = "tests/fixtures"
-    spy = mocker.spy(CallGraph, "__init__")
-    expected_filepaths = [
-        os.path.abspath("tests/fixtures/fixture_class.py"),
-    ]
+    expected_filepaths = [os.path.abspath("tests/fixtures/fixture_class.py")]
 
     CodeGraph.init(path)
 
-    filepaths = spy.call_args.args[1]
-    assert len(filepaths) == len(expected_filepaths)
-    for p in filepaths:
-        assert p in expected_filepaths
+    call_graph_generate_spy.assert_called_with(entry_points=expected_filepaths)
 
 def test_init_with_invalid_path_returns_errors(mocker) -> None:
     invalid_path = "foo"
@@ -43,6 +49,7 @@ def test_init_with_valid_path_persists_code_graph(mocker) -> None:
     os_spy = mocker.spy(os, "makedirs")
     mock_file = mocker.mock_open()
     mocker.patch("builtins.open", mock_file)
+    mocker.patch("nuanced.code_graph.with_timeout", generate_call_graph)
     expected_path = os.path.abspath(f"tests/fixtures/{CodeGraph.NUANCED_DIRNAME}")
 
     CodeGraph.init("tests/fixtures")
@@ -55,8 +62,8 @@ def test_init_with_valid_path_returns_code_graph(mocker) -> None:
     mocker.patch("os.makedirs", lambda _dirname, exist_ok=True: None)
     mock_file = mocker.mock_open()
     mocker.patch("builtins.open", mock_file)
+    mocker.patch("nuanced.code_graph.with_timeout", generate_call_graph)
     path = "tests/fixtures"
-    spy = mocker.spy(CallGraph, "__init__")
     expected_filepaths = [os.path.abspath("tests/fixtures/foo.py")]
 
     code_graph_result = CodeGraph.init(path)
@@ -68,13 +75,13 @@ def test_init_with_valid_path_returns_code_graph(mocker) -> None:
 
 def test_init_timeout_returns_errors(mocker) -> None:
     path = "tests/fixtures"
-    mocker.patch("nuanced.CodeGraph.INIT_TIMEOUT_SECONDS", 0)
+    mocker.patch("nuanced.code_graph.with_timeout", timeout_call_graph_generation)
 
     code_graph_result = CodeGraph.init(path)
     errors = code_graph_result.errors
 
     assert len(errors) == 1
-    assert type(errors[0]) == concurrent.futures.TimeoutError
+    assert type(errors[0]) == multiprocessing.TimeoutError
 
 def test_enrich_with_nonexistent_file() -> None:
     graph = json.loads('{ "foo.bar": { "filepath": "foo.py", "callees": [] } }')
