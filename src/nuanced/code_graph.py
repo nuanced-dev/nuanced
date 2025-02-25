@@ -1,12 +1,11 @@
 from collections import namedtuple
-from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 from itertools import groupby
-import concurrent.futures
 import errno
 import glob
 import json
 import os
-from nuanced.lib.call_graph import CallGraph
+from nuanced.lib import call_graph
+from nuanced.lib.utils import with_timeout
 
 CodeGraphResult = namedtuple("CodeGraphResult", ["errors", "code_graph"])
 EnrichmentResult = namedtuple("EnrichmentResult", ["errors", "result"])
@@ -20,6 +19,7 @@ class CodeGraph():
     @classmethod
     def init(cls, path: str) -> CodeGraphResult:
         errors = []
+        code_graph = None
         absolute_path = os.path.abspath(path)
 
         if not os.path.isdir(absolute_path):
@@ -29,7 +29,6 @@ class CodeGraph():
                 absolute_path
             )
             errors.append(error)
-            code_graph = None
         else:
             eligible_filepaths = glob.glob(
                     f'**/{cls.ELIGIBLE_FILE_TYPE_PATTERN}',
@@ -37,36 +36,30 @@ class CodeGraph():
                     recursive=True
                 )
             eligible_absolute_filepaths = [absolute_path + "/" + p for p in eligible_filepaths]
+
             if len(eligible_absolute_filepaths) == 0:
                 error = ValueError(f"No eligible files found in {absolute_path}")
                 errors.append(error)
-                code_graph = None
             else:
-                with ThreadPoolExecutor() as executor:
-                    call_graph = CallGraph(eligible_absolute_filepaths)
-                    future = executor.submit(call_graph.generate)
-                    done, not_done = wait([future], timeout=cls.INIT_TIMEOUT_SECONDS, return_when=FIRST_COMPLETED)
+                call_graph_result = with_timeout(
+                    target=call_graph.generate,
+                    args=(eligible_absolute_filepaths),
+                    timeout=cls.INIT_TIMEOUT_SECONDS,
+                )
+                call_graph_dict = call_graph_result.value
 
-                    if future in done:
-                        try:
-                            call_graph_dict = call_graph.to_dict()
-                            nuanced_dirpath = f'{absolute_path}/{cls.NUANCED_DIRNAME}'
-                            os.makedirs(nuanced_dirpath, exist_ok=True)
+                if len(call_graph_result.errors) > 0:
+                    errors = errors + call_graph_result.errors
 
-                            nuanced_graph_file = open(f'{nuanced_dirpath}/{cls.NUANCED_GRAPH_FILENAME}', "w+")
-                            nuanced_graph_file.write(json.dumps(call_graph_dict))
+                if call_graph_dict:
+                    nuanced_dirpath = f'{absolute_path}/{cls.NUANCED_DIRNAME}'
+                    os.makedirs(nuanced_dirpath, exist_ok=True)
 
-                            code_graph = cls(graph=call_graph_dict)
-                        except Exception as e:
-                            errors.append(str(e))
-                            code_graph = None
-                    else:
-                        executor.shutdown(wait=False, cancel_futures=True)
-                        error = concurrent.futures.TimeoutError()
-                        errors.append(error)
-                        code_graph = None
+                    nuanced_graph_file = open(f'{nuanced_dirpath}/{cls.NUANCED_GRAPH_FILENAME}', "w+")
+                    nuanced_graph_file.write(json.dumps(call_graph_dict))
+                    code_graph = cls(graph=call_graph_dict)
 
-        return CodeGraphResult(errors, code_graph)
+        return CodeGraphResult(code_graph=code_graph, errors=errors)
 
     def __init__(self, graph:dict|None) -> None:
         self.graph = graph
