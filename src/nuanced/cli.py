@@ -18,7 +18,7 @@ def enrich(file_path: str, function_name: str):
         for error in result.errors:
             print(str(error))
     elif not result.result:
-        print(f"Function definition for filepath \"{filepath}\" and function name \"{function_name}\"  not found")
+        print(f"Function definition for file path \"{file_path}\" and function name \"{function_name}\" not found")
     else:
         print(json.dumps(result.result))
 
