@@ -59,7 +59,7 @@ wheels = [
 [[package]]
 name = "jarviscg"
 version = "0.1.0"
-source = { git = "https://github.com/nuanced-dev/jarviscg#8ab63721983c1a542c20cd03c81254811a59168b" }
+source = { git = "https://github.com/nuanced-dev/jarviscg#030a5f14ee9da77129478c3f163dc27065d0eb1c" }
 dependencies = [
     { name = "deepdiff" },
     { name = "pytest" },
