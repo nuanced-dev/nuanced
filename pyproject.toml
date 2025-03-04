@@ -20,9 +20,6 @@ nuanced = "nuanced:cli.main"
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-[tool.uv.sources]
-jarviscg = { git = "https://github.com/nuanced-dev/jarviscg" }
-
 [dependency-groups]
 dev = [
     "deepdiff>=8.2.0",
@@ -34,3 +31,6 @@ dev = [
 pythonpath = [
     "."
 ]
+
+[tool.uv.sources]
+jarviscg = { git = "https://github.com/nuanced-dev/jarviscg.git", rev = "v0.1.0rc1" }
