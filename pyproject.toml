@@ -9,7 +9,7 @@ authors = [
 requires-python = ">=3.8"
 dependencies = [
     "setuptools>=75.3.0",
-    "jarviscg@https://github.com/nuanced-dev/jarviscg/archive/refs/tags/v0.1.0rc1.tar.gz",
+    "jarviscg==0.1.0rc1",
     "typer>=0.15.1",
 ]
 
@@ -34,6 +34,3 @@ allow-direct-references = true
 pythonpath = [
     "."
 ]
-
-[tool.uv.sources]
-jarviscg = { git = "https://github.com/nuanced-dev/jarviscg.git", rev = "v0.1.0rc1" }
