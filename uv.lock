@@ -58,8 +58,8 @@ wheels = [
 
 [[package]]
 name = "jarviscg"
-version = "0.1.0"
-source = { git = "https://github.com/nuanced-dev/jarviscg.git#874bef194b5a2285ae329079488dc79fa777ebe3" }
+version = "0.1.0rc1"
+source = { git = "https://github.com/nuanced-dev/jarviscg.git?rev=v0.1.0rc1#d48ac98159170bb11b56933217406b02374a2825" }
 dependencies = [
     { name = "deepdiff" },
     { name = "pytest" },
@@ -108,7 +108,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "jarviscg", git = "https://github.com/nuanced-dev/jarviscg.git" },
+    { name = "jarviscg", git = "https://github.com/nuanced-dev/jarviscg.git?rev=v0.1.0rc1" },
     { name = "setuptools", specifier = ">=75.3.0" },
     { name = "typer", specifier = ">=0.15.1" },
 ]
