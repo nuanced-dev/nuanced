@@ -27,9 +27,6 @@ dev = [
     "pytest-mock>=3.14.0",
 ]
 
-[tool.hatch.metadata]
-allow-direct-references = true
-
 [tool.pytest.ini_options]
 pythonpath = [
     "."
