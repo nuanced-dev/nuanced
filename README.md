@@ -35,21 +35,15 @@ the test pass?" > agent_prompt.txt
 
 #### Setup
 
-1. Clone the repo
+1. Set up and activate virtualenv
 
 ```bash
-% git clone git@github.com:nuanced-dev/nuanced.git
-```
-
-2. Set up and activate virtualenv
-
-```bash
-% cd nuanced-graph
+% cd nuanced
 % uv venv
 % source .venv/bin/activate
 ```
 
-3. Install dependencies
+2. Install dependencies
 
 ```bash
 % uv sync
@@ -60,3 +54,7 @@ the test pass?" > agent_prompt.txt
 ```bash
 % pytest
 ```
+
+#### Releasing new versions
+
+https://docs.nuanced.dev/versioning#release-process
