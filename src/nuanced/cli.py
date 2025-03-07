@@ -6,6 +6,8 @@ from nuanced import CodeGraph
 
 app = typer.Typer()
 
+ERROR_EXIT_CODE = 1
+
 @app.command()
 def enrich(file_path: str, function_name: str):
     nuanced_graph_path = os.path.abspath(".nuanced/nuanced-graph.json")
@@ -17,8 +19,10 @@ def enrich(file_path: str, function_name: str):
     if len(result.errors) > 0:
         for error in result.errors:
             print(str(error))
+        raise typer.Exit(code=ERROR_EXIT_CODE)
     elif not result.result:
         print(f"Function definition for file path \"{file_path}\" and function name \"{function_name}\" not found")
+        raise typer.Exit(code=ERROR_EXIT_CODE)
     else:
         print(json.dumps(result.result))
 
