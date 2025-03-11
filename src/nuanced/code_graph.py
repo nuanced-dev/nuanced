@@ -1,5 +1,6 @@
 from collections import namedtuple
 from itertools import groupby
+from pathlib import Path
 import errno
 import glob
 import json
@@ -58,6 +59,28 @@ class CodeGraph():
                     nuanced_graph_file = open(f'{nuanced_dirpath}/{cls.NUANCED_GRAPH_FILENAME}', "w+")
                     nuanced_graph_file.write(json.dumps(call_graph_dict))
                     code_graph = cls(graph=call_graph_dict)
+
+        return CodeGraphResult(code_graph=code_graph, errors=errors)
+
+    @classmethod
+    def load(cls, directory=str) -> CodeGraphResult:
+        errors = []
+        code_graph = None
+        dir_path = Path(directory)
+        file_paths = list(dir_path.glob(f"**/{cls.NUANCED_DIRNAME}/{cls.NUANCED_GRAPH_FILENAME}"))
+
+        if len(file_paths) > 1:
+            graph_file_paths = ", ".join([str(fp) for fp in file_paths])
+            error = ValueError(f"Multiple Nuanced Graphs found in {os.path.abspath(directory)}: {graph_file_paths}")
+            errors.append(error)
+        elif len(file_paths) == 1:
+            file_path = file_paths[0]
+            graph_file = open(file_path, "r")
+            graph = json.load(graph_file)
+            code_graph = CodeGraph(graph=graph)
+        elif len(file_paths) == 0:
+            error = FileNotFoundError(f"Nuanced Graph not found in {os.path.abspath(directory)}")
+            errors.append(error)
 
         return CodeGraphResult(code_graph=code_graph, errors=errors)
 

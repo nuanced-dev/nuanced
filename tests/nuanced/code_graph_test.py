@@ -2,6 +2,7 @@ import json
 import multiprocessing
 import os
 import pytest
+from pathlib import Path, PosixPath
 import nuanced
 from nuanced import CodeGraph
 from nuanced.lib.call_graph import generate
@@ -156,3 +157,38 @@ def test_enrich_with_valid_function_path_handles_multiple_definitions() -> None:
 
     assert len(result.errors) == 1
     assert str(result.errors[0]) == f"Multiple definitions for {function_name} found in {filepath1}: foo.class.bar, foo.other_class.bar"
+
+def test_load_success(mocker, monkeypatch) -> None:
+    mock_file = mocker.mock_open(read_data="{}")
+    mocker.patch("builtins.open", mock_file)
+    graph_file_paths = [".nuanced/nuanced-graph.json"]
+    monkeypatch.setattr(Path, "glob", lambda _x, _y: graph_file_paths)
+
+    result = CodeGraph.load(directory=".")
+
+    assert result.code_graph
+
+def test_load_multiple_files_found_errors(mocker, monkeypatch) -> None:
+    directory = "."
+    graph_file_paths = [
+        PosixPath(".nuanced/nuanced-graph.json"),
+        PosixPath("src/.nuanced/nuanced-graph.json"),
+    ]
+    graph_file_path_strings = [str(fp) for fp in graph_file_paths]
+    expected_error_message = f"Multiple Nuanced Graphs found in {os.path.abspath(directory)}: {', '.join(graph_file_path_strings)}"
+    mock_file = mocker.mock_open(read_data="{}")
+    mocker.patch("builtins.open", mock_file)
+    monkeypatch.setattr(Path, "glob", lambda _x, _y: graph_file_paths)
+
+    result = CodeGraph.load(directory=directory)
+
+    assert len(result.errors) == 1
+    assert type(result.errors[0]) == ValueError
+    assert str(result.errors[0]) == expected_error_message
+
+def test_load_file_not_found_errors(mocker) -> None:
+    result = CodeGraph.load(directory=".")
+
+    assert len(result.errors) == 1
+    assert type(result.errors[0]) == FileNotFoundError
+    assert str(result.errors[0]) == f"Nuanced Graph not found in {os.path.abspath('.')}"
