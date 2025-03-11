@@ -6,6 +6,7 @@ Pre-review checklist:
 
 Post-merge checklist:
 - [ ] Create GitHub Release
+- [ ] Publish package to TestPyPI
 - [ ] Publish package to PyPI
 - [ ] Verify installation
   - [ ] `pip install nuanced`
