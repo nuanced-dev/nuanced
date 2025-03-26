@@ -1,7 +1,6 @@
 import json
 import os
 import typer
-from pathlib import Path
 from rich import print
 from nuanced import CodeGraph
 
@@ -9,8 +8,9 @@ app = typer.Typer()
 
 ERROR_EXIT_CODE = 1
 
+
 @app.command()
-def enrich(file_path: str, function_name: str):
+def enrich(file_path: str, function_name: str) -> None:
     inferred_graph_dir = "."
     code_graph_result = CodeGraph.load(directory=inferred_graph_dir)
 
@@ -32,8 +32,9 @@ def enrich(file_path: str, function_name: str):
     else:
         print(json.dumps(result.result))
 
+
 @app.command()
-def init(path: str):
+def init(path: str) -> None:
     abspath = os.path.abspath(path)
     print(f"Initializing {abspath}")
     result = CodeGraph.init(abspath)
@@ -44,5 +45,6 @@ def init(path: str):
     else:
         print("Done")
 
-def main():
+
+def main() -> None:
     app()

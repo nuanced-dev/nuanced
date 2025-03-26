@@ -11,6 +11,7 @@ from nuanced.lib.utils import with_timeout
 CodeGraphResult = namedtuple("CodeGraphResult", ["errors", "code_graph"])
 EnrichmentResult = namedtuple("EnrichmentResult", ["errors", "result"])
 
+
 class CodeGraph():
     ELIGIBLE_FILE_TYPE_PATTERN = "*.py"
     INIT_TIMEOUT_SECONDS = 30
@@ -84,7 +85,7 @@ class CodeGraph():
 
         return CodeGraphResult(code_graph=code_graph, errors=errors)
 
-    def __init__(self, graph:dict|None) -> None:
+    def __init__(self, graph: dict | None) -> None:
         self.graph = graph
 
     def enrich(self, file_path: str, function_name: str) -> EnrichmentResult:
@@ -106,7 +107,7 @@ class CodeGraph():
 
         return EnrichmentResult(errors=[], result=subgraph)
 
-    def _build_subgraph(self, entrypoint_node_key: str) -> dict|None:
+    def _build_subgraph(self, entrypoint_node_key: str) -> dict | None:
         subgraph = dict()
         visited = set()
         entrypoint_node = self.graph.get(entrypoint_node_key)
