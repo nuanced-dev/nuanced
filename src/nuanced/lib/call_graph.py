@@ -1,7 +1,8 @@
 from jarviscg import formats
 from jarviscg.core import CallGraphGenerator
 
-def generate(entry_points: list, **kwargs):
+
+def generate(entry_points: list, **kwargs) -> dict:
     default_package = None
     default_decy = False
     default_precision = False

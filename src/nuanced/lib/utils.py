@@ -4,10 +4,12 @@ import select
 
 WithTimeoutResult = namedtuple("WithTimeoutResult", ["errors", "value"])
 
+
 def send_target_return_value_to_conn(conn, target, args):
     return_value = target(args)
     conn.send(return_value)
     conn.close()
+
 
 def with_timeout(target, args, timeout):
     errors = []
