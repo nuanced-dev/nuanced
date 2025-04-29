@@ -9,12 +9,17 @@ def generate(entry_points: list, **kwargs) -> dict:
     default_module_entry = None
 
     args = {
-            "package": default_package,
-            "decy": default_decy,
-            "precision": default_precision,
-            "moduleEntry": default_module_entry,
-        }
-    args.update(kwargs)
+        "package": default_package,
+        "decy": default_decy,
+        "precision": default_precision,
+        "moduleEntry": default_module_entry,
+    }
+    package_path = kwargs.get("package_path", None)
+
+    if package_path:
+        package_path_parts = package_path.split("/")
+        package_parent_path = "/".join(package_path_parts[0:-1])
+        args["package"] = package_parent_path
 
     call_graph = CallGraphGenerator(
         entry_points,

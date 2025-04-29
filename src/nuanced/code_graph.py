@@ -22,30 +22,34 @@ class CodeGraph():
     def init(cls, path: str) -> CodeGraphResult:
         errors = []
         code_graph = None
-        absolute_path = os.path.abspath(path)
+        absolute_path_to_package = os.path.abspath(path)
 
-        if not os.path.isdir(absolute_path):
+        if not os.path.isdir(absolute_path_to_package):
             error = FileNotFoundError(
                 errno.ENOENT,
                 os.strerror(errno.ENOENT),
-                absolute_path
+                absolute_path_to_package
             )
             errors.append(error)
         else:
             eligible_filepaths = glob.glob(
                     f'**/{cls.ELIGIBLE_FILE_TYPE_PATTERN}',
-                    root_dir=absolute_path,
+                    root_dir=absolute_path_to_package,
                     recursive=True
                 )
-            eligible_absolute_filepaths = [absolute_path + "/" + p for p in eligible_filepaths]
+            eligible_absolute_filepaths = [absolute_path_to_package + "/" + p for p in eligible_filepaths]
 
             if len(eligible_absolute_filepaths) == 0:
-                error = ValueError(f"No eligible files found in {absolute_path}")
+                error = ValueError(f"No eligible files found in {absolute_path_to_package}")
+                errors.append(error)
+            elif f"{absolute_path_to_package}/__init__.py" not in eligible_absolute_filepaths:
+                error = ValueError(f"No package definition found in {absolute_path_to_package}: `__init__.py` missing")
                 errors.append(error)
             else:
                 call_graph_result = with_timeout(
                     target=call_graph.generate,
                     args=(eligible_absolute_filepaths),
+                    kwargs=({"package_path": absolute_path_to_package}),
                     timeout=cls.INIT_TIMEOUT_SECONDS,
                 )
                 call_graph_dict = call_graph_result.value
@@ -54,7 +58,7 @@ class CodeGraph():
                     errors = errors + call_graph_result.errors
 
                 if call_graph_dict:
-                    nuanced_dirpath = f'{absolute_path}/{cls.NUANCED_DIRNAME}'
+                    nuanced_dirpath = f'{absolute_path_to_package}/{cls.NUANCED_DIRNAME}'
                     os.makedirs(nuanced_dirpath, exist_ok=True)
 
                     nuanced_graph_file = open(f'{nuanced_dirpath}/{cls.NUANCED_GRAPH_FILENAME}', "w+")
