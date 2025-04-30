@@ -21,8 +21,14 @@ def test_enrich_loads_graph_from_working_dir(mocker):
 
     load_spy.assert_called_with(directory=".")
 
-def test_enrich_fails_to_load_graph_errors():
-    expected_output = f"Nuanced Graph not found in {os.path.abspath('./')}"
+def test_enrich_fails_to_load_graph_errors(mocker):
+    error = FileNotFoundError(f"Nuanced Graph not found in {os.path.abspath('./')}")
+    errors = [error]
+    mocker.patch(
+        "nuanced.cli.CodeGraph.load",
+        lambda directory: CodeGraphResult(code_graph=None, errors=errors),
+    )
+    expected_output = str(error)
 
     result = runner.invoke(app, ["enrich", "foo.py", "bar"])
 
