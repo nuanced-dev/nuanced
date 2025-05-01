@@ -186,7 +186,8 @@ def test_load_multiple_files_found_errors(mocker, monkeypatch) -> None:
     assert type(result.errors[0]) == ValueError
     assert str(result.errors[0]) == expected_error_message
 
-def test_load_file_not_found_errors(mocker) -> None:
+def test_load_file_not_found_errors(monkeypatch) -> None:
+    monkeypatch.setattr(Path, "glob", lambda _x, _y: [])
     result = CodeGraph.load(directory=".")
 
     assert len(result.errors) == 1
