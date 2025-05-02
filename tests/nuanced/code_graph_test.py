@@ -8,11 +8,11 @@ from nuanced import CodeGraph
 from nuanced.lib.call_graph import generate
 from nuanced.lib.utils import WithTimeoutResult
 
-def generate_call_graph(target, args, timeout):
-    call_graph_dict = target(entry_points=args)
+def generate_call_graph(target, args, kwargs, timeout):
+    call_graph_dict = target(args, **kwargs)
     return WithTimeoutResult(errors=[], value=call_graph_dict)
 
-def timeout_call_graph_generation(target, args, timeout):
+def timeout_call_graph_generation(target, args, kwargs, timeout):
     errors = [multiprocessing.TimeoutError("Operation timed out")]
     return WithTimeoutResult(errors=errors, value=None)
 
@@ -23,11 +23,28 @@ def test_init_with_valid_path_generates_graph_with_expected_files(mocker) -> Non
     mocker.patch("nuanced.code_graph.with_timeout", generate_call_graph)
     call_graph_generate_spy = mocker.spy(nuanced.lib.call_graph, "generate")
     path = "tests/fixtures"
-    expected_filepaths = [os.path.abspath("tests/fixtures/fixture_class.py")]
+    expected_package = os.path.abspath(path)
+    expected_filepaths = [
+        os.path.abspath("tests/fixtures/fixture_class.py"),
+        os.path.abspath("tests/fixtures/__init__.py")
+    ]
 
     CodeGraph.init(path)
 
-    call_graph_generate_spy.assert_called_with(entry_points=expected_filepaths)
+    call_graph_generate_spy.assert_called_with(
+        entry_points=expected_filepaths,
+        package_path=expected_package
+    )
+
+def test_init_with_no_package_definitions_in_directory_returns_errors(mocker) -> None:
+    path = "."
+    expected_error_message = f"No package definition found in {os.path.abspath(path)}: `__init__.py` missing"
+
+    code_graph_result = CodeGraph.init(path)
+
+    assert len(code_graph_result.errors) == 1
+    assert type(code_graph_result.errors[0]) == ValueError
+    assert str(code_graph_result.errors[0]) == expected_error_message
 
 def test_init_with_invalid_path_returns_errors(mocker) -> None:
     invalid_path = "foo"
