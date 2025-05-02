@@ -3,16 +3,11 @@ from jarviscg.core import CallGraphGenerator
 
 
 def generate(entry_points: list, **kwargs) -> dict:
-    default_package = None
-    default_decy = False
-    default_precision = False
-    default_module_entry = None
-
     args = {
-        "package": default_package,
-        "decy": default_decy,
-        "precision": default_precision,
-        "moduleEntry": default_module_entry,
+        "package": None,
+        "decy": False,
+        "precision": False,
+        "moduleEntry": None,
     }
     package_path = kwargs.get("package_path", None)
 
