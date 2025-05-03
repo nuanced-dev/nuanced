@@ -47,10 +47,10 @@ def test_enrich_finds_relevant_graph_in_file_path_scope(mocker):
     file_path = "../foo/bar/baz.py"
     file_dir, _ = os.path.split(file_path)
     top_dir = ".."
-    top_dir_contents = (top_dir, ["other", "foo"], ["__init__.py"])
-    file_parent_dir_contents = ("../foo", [CodeGraph.NUANCED_DIRNAME], ["__init__.py"])
-    other_dir_contents = ("../other", [CodeGraph.NUANCED_DIRNAME], ["__init__.py"])
-    file_dir_contents = (file_dir, [], ["__init__.py", "baz.py"])
+    top_dir_contents = (top_dir, ["other", "foo"], [])
+    file_parent_dir_contents = ("../foo", [CodeGraph.NUANCED_DIRNAME], [])
+    other_dir_contents = ("../other", [CodeGraph.NUANCED_DIRNAME], [])
+    file_dir_contents = (file_dir, [], [])
     stub_graph = {}
     result_with_errors = CodeGraphResult(code_graph=None, errors=["Graph not found"])
     valid_result = CodeGraphResult(code_graph=CodeGraph(stub_graph), errors=[])
