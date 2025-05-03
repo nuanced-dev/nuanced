@@ -23,33 +23,33 @@ def test_enrich_finds_relevant_graph_in_file_dir(mocker):
 
     load_spy.assert_called_with(directory="")
 
-def test_enrich_finds_relevant_graph_in_file_parent_dir(mocker):
+def test_enrich_finds_relevant_graph_in_file_path_parent_dir(mocker):
     file_path = "foo/bar/baz.py"
     file_dir, _ = os.path.split(file_path)
-    root_dir = "foo"
-    root_dir_contents = (root_dir, [CodeGraph.NUANCED_DIRNAME, "bar"], ["__init__.py"])
+    top_dir = "foo"
+    top_dir_contents = (top_dir, [CodeGraph.NUANCED_DIRNAME, "bar"], ["__init__.py"])
     stub_graph = {}
     result_with_errors = CodeGraphResult(code_graph=None, errors=["Graph not found"])
     valid_result = CodeGraphResult(code_graph=CodeGraph(stub_graph), errors=[])
-    mocker.patch("os.walk", lambda directory: [root_dir_contents])
+    mocker.patch("os.walk", lambda directory: [top_dir_contents])
     mocker.patch(
         "nuanced.cli.CodeGraph.load",
         lambda directory: result_with_errors if directory == file_dir else valid_result
     )
-    expected_calls = [mocker.call(directory=file_dir), mocker.call(directory=root_dir)]
+    expected_calls = [mocker.call(directory=file_dir), mocker.call(directory=top_dir)]
     load_spy = mocker.spy(CodeGraph, "load")
 
-    runner.invoke(app, ["enrich", "foo/bar/baz.py", "hello_world"])
+    runner.invoke(app, ["enrich", file_path, "hello_world"])
 
     load_spy.assert_has_calls(expected_calls)
 
-def test_enrich_ignores_irrelevant_graph(mocker):
+def test_enrich_finds_relevant_graph_in_file_path_scope(mocker):
     file_path = "../foo/bar/baz.py"
     file_dir, _ = os.path.split(file_path)
     top_dir = ".."
-    top_dir_contents = (top_dir, ["current", "foo/bar"], ["__init__.py"])
+    top_dir_contents = (top_dir, ["other", "foo"], ["__init__.py"])
     file_parent_dir_contents = ("../foo", [CodeGraph.NUANCED_DIRNAME], ["__init__.py"])
-    current_dir_contents = ("../current", [CodeGraph.NUANCED_DIRNAME], ["__init__.py"])
+    other_dir_contents = ("../other", [CodeGraph.NUANCED_DIRNAME], ["__init__.py"])
     file_dir_contents = (file_dir, [], ["__init__.py", "baz.py"])
     stub_graph = {}
     result_with_errors = CodeGraphResult(code_graph=None, errors=["Graph not found"])
@@ -61,7 +61,7 @@ def test_enrich_ignores_irrelevant_graph(mocker):
     mocked_contents = [
         top_dir_contents,
         file_parent_dir_contents,
-        current_dir_contents,
+        other_dir_contents,
         file_dir_contents
     ]
     mocker.patch("os.walk", lambda directory: mocked_contents)
@@ -69,7 +69,7 @@ def test_enrich_ignores_irrelevant_graph(mocker):
 
     runner.invoke(app, ["enrich", file_path, "hello_world"])
 
-    assert mocker.call(directory="../current") not in load_spy.mock_calls
+    assert mocker.call(directory="../other") not in load_spy.mock_calls
 
 def test_enrich_fails_to_load_graph_errors(mocker):
     error = FileNotFoundError(f"Nuanced Graph not found in {os.path.abspath('./')}")
