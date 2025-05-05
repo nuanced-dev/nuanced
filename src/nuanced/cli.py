@@ -53,7 +53,7 @@ def _find_code_graph(file_path: str) -> CodeGraphResult:
     if len(code_graph_result.errors) > 0:
         top_directory = file_directory.split("/")[0]
 
-        for root, dirs, _files in os.walk(top_directory):
+        for root, dirs, _files in os.walk(top_directory, topdown=False):
             commonprefix = os.path.commonprefix([root, file_directory])
 
             if commonprefix == root and CodeGraph.NUANCED_DIRNAME in dirs:

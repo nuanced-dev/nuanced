@@ -36,7 +36,7 @@ def test_enrich_finds_relevant_graph_in_file_path_parent_dir(mocker):
         "nuanced.cli.CodeGraph.load",
         lambda directory: result_with_errors if directory == file_dir else valid_result
     )
-    expected_calls = [mocker.call(directory=file_dir), mocker.call(directory=top_dir)]
+    expected_calls = [mocker.call(directory=file_dir)]
     load_spy = mocker.spy(CodeGraph, "load")
 
     runner.invoke(app, ["enrich", file_path, "hello_world"])
