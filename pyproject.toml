@@ -1,6 +1,6 @@
 [project]
 name = "nuanced"
-version = "0.1.4"
+version = "0.1.5"
 description = "Nuanced Python"
 readme = "README.md"
 authors = [
