@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.5] - 2025-05-05
+
+### Added
+
+### Fixed
+
+### Changed
+
+- Upgrade to jarviscg v0.1.0rc3 (https://github.com/nuanced-dev/nuanced/pull/63)
+- Restrict usage to analyzing one package at a time by updating `CodeGraph.init` to ensure input path is a directory containing a package definition (https://github.com/nuanced-dev/nuanced/pull/66)
+- Update `enrich` CLI command to search for and load the graph file that is relevant to the query (https://github.com/nuanced-dev/nuanced/pull/67)
+  - Attempt to load a graph from the directory in which the file in `file_path` is located
+  - If that doesn't work, traverse the directory structure starting with the top-level directory in `file_path` until graph is found
+
+### Removed
+
 ## [0.1.4] - 2025-03-11
 
 ### Added
