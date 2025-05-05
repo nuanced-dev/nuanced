@@ -1,6 +1,6 @@
 ## nuanced
 
-nuanced uses static analysis to generate enriched function call graphs of Python modules, providing agents and coding assistants with deeper understanding of code behavior.
+nuanced uses static analysis to generate enriched function call graphs of Python packages, providing agents and coding assistants with deeper understanding of code behavior.
 
 Docs: https://docs.nuanced.dev
 
@@ -12,17 +12,17 @@ Docs: https://docs.nuanced.dev
 uv tool install nuanced
 ```
 
-**Initialize the graph**
+**Initialize a graph**
 
 ```bash
 cd my_project
-nuanced init my_python_module
+nuanced init path/to/my_package
 ```
 
 **Enrich and add context**
 
 ```bash
-nuanced enrich path/to/module/file.py some_function_name > some_function_name_subgraph.json
+nuanced enrich path/to/my_package/file.py some_function_name > some_function_name_subgraph.json
 ```
 
 ```bash
