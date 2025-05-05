@@ -31,3 +31,6 @@ dev = [
 pythonpath = [
     "."
 ]
+addopts = [
+    "--import-mode=importlib",
+]
