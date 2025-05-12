@@ -30,7 +30,7 @@ def enrich(file_path: str, function_name: str) -> None:
         print(f"Function definition for file path \"{file_path}\" and function name \"{function_name}\" not found")
         raise typer.Exit(code=ERROR_EXIT_CODE)
     else:
-        print(json.dumps(result.result))
+        print(json.dumps(result.result, indent=2))
 
 
 @app.command()
