@@ -14,7 +14,7 @@ EnrichmentResult = namedtuple("EnrichmentResult", ["errors", "result"])
 
 class CodeGraph():
     ELIGIBLE_FILE_TYPE_PATTERN = "*.py"
-    INIT_TIMEOUT_SECONDS = 30
+    INIT_TIMEOUT_SECONDS = 60
     NUANCED_DIRNAME = ".nuanced"
     NUANCED_GRAPH_FILENAME = "nuanced-graph.json"
 
