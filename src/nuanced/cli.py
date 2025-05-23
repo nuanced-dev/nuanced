@@ -29,7 +29,7 @@ def enrich(file_path: str, function_name: str) -> None:
             err_console.print(str(error))
         raise typer.Exit(code=ERROR_EXIT_CODE)
     elif not result.result:
-        err_msg = "Function definition for file path \"{file_path}\" and function name \"{function_name}\" not found"
+        err_msg = f"Function definition for file path \"{file_path}\" and function name \"{function_name}\" not found"
         err_console.print(err_msg)
         raise typer.Exit(code=ERROR_EXIT_CODE)
     else:
