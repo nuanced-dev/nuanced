@@ -7,7 +7,7 @@ from nuanced.cli import app
 from nuanced.code_graph import CodeGraphResult
 
 
-runner = CliRunner()
+runner = CliRunner(mix_stderr=False)
 
 
 def test_enrich_finds_relevant_graph_in_file_dir(mocker):
@@ -82,7 +82,7 @@ def test_enrich_fails_to_load_graph_errors(mocker):
 
     result = runner.invoke(app, ["enrich", "foo.py", "bar"])
 
-    assert expected_output in result.stdout
+    assert expected_output in result.stderr
     assert result.exit_code == 1
 
 def test_enrich_returns_subgraph_success(mocker):

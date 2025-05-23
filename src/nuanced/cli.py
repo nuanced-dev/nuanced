@@ -2,6 +2,7 @@ import json
 import os
 import typer
 from rich import print
+from rich.console import Console
 from nuanced import CodeGraph
 from nuanced.code_graph import CodeGraphResult
 
@@ -12,11 +13,12 @@ ERROR_EXIT_CODE = 1
 
 @app.command()
 def enrich(file_path: str, function_name: str) -> None:
+    err_console = Console(stderr=True)
     code_graph_result = _find_code_graph(file_path)
 
     if len(code_graph_result.errors) > 0:
         for error in code_graph_result.errors:
-            print(str(error))
+            err_console.print(str(error))
         raise typer.Exit(code=ERROR_EXIT_CODE)
 
     code_graph = code_graph_result.code_graph
@@ -24,10 +26,11 @@ def enrich(file_path: str, function_name: str) -> None:
 
     if len(result.errors) > 0:
         for error in result.errors:
-            print(str(error))
+            err_console.print(str(error))
         raise typer.Exit(code=ERROR_EXIT_CODE)
     elif not result.result:
-        print(f"Function definition for file path \"{file_path}\" and function name \"{function_name}\" not found")
+        err_msg = "Function definition for file path \"{file_path}\" and function name \"{function_name}\" not found"
+        err_console.print(err_msg)
         raise typer.Exit(code=ERROR_EXIT_CODE)
     else:
         print(json.dumps(result.result, indent=2))
@@ -35,13 +38,14 @@ def enrich(file_path: str, function_name: str) -> None:
 
 @app.command()
 def init(path: str) -> None:
+    err_console = Console(stderr=True)
     abspath = os.path.abspath(path)
     print(f"Initializing {abspath}")
     result = CodeGraph.init(abspath)
 
     if len(result.errors) > 0:
         for error in result.errors:
-            print(str(error))
+            err_console.print(str(error))
     else:
         print("Done")
 
