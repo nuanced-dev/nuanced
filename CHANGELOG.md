@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.6] - 2025-05-27
+
+### Added
+
+### Fixed
+
+### Changed
+
+- Pretty-print `nuanced enrich` CLI command JSON output (https://github.com/nuanced-dev/nuanced/pull/71)
+- Print CLI error messages to STDERR instead of STDOUT (https://github.com/nuanced-dev/nuanced/pull/73)
+- Increase graph initialization timeout threshold from 30s to 60s (https://github.com/nuanced-dev/nuanced/pull/74)
+
+### Removed
+
 ## [0.1.5] - 2025-05-05
 
 ### Added
