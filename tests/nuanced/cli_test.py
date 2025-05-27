@@ -4,7 +4,7 @@ import os
 from typer.testing import CliRunner
 from nuanced import CodeGraph
 from nuanced.cli import app
-from nuanced.code_graph import CodeGraphResult
+from nuanced.code_graph import CodeGraphResult, EnrichmentResult
 
 
 runner = CliRunner(mix_stderr=False)
@@ -77,6 +77,39 @@ def test_enrich_fails_to_load_graph_errors(mocker):
     mocker.patch(
         "nuanced.cli.CodeGraph.load",
         lambda directory: CodeGraphResult(code_graph=None, errors=errors),
+    )
+    expected_output = str(error)
+
+    result = runner.invoke(app, ["enrich", "foo.py", "bar"])
+
+    assert expected_output in result.stderr
+    assert result.exit_code == 1
+
+def test_enrich_fails_to_find_function_errors(mocker, monkeypatch):
+    stub_graph = {}
+    code_graph = CodeGraph(graph=stub_graph)
+    error_result = EnrichmentResult(result=None, errors=[])
+    monkeypatch.setattr(code_graph, "enrich", lambda file_path, function_name: error_result)
+    mocker.patch(
+        "nuanced.cli.CodeGraph.load",
+        lambda directory: CodeGraphResult(code_graph=code_graph, errors=[]),
+    )
+    expected_output = f'Function definition for file path "foo.py" and function name "bar" not found'
+
+    result = runner.invoke(app, ["enrich", "foo.py", "bar"])
+
+    assert expected_output in result.stderr
+    assert result.exit_code == 1
+
+def test_enrich_fails_to_enrich_function_errors(mocker, monkeypatch):
+    stub_graph = {}
+    code_graph = CodeGraph(graph=stub_graph)
+    error = ValueError("Something went wrong")
+    error_result = EnrichmentResult(result=None, errors=[error])
+    monkeypatch.setattr(code_graph, "enrich", lambda file_path, function_name: error_result)
+    mocker.patch(
+        "nuanced.cli.CodeGraph.load",
+        lambda directory: CodeGraphResult(code_graph=code_graph, errors=[]),
     )
     expected_output = str(error)
 
