@@ -2,6 +2,8 @@ from jarviscg import formats
 from jarviscg.core import CallGraphGenerator
 
 
+BUILTIN_FUNCTION_PREFIX = "<builtin>"
+
 def generate(entry_points: list, **kwargs) -> dict:
     args = {
         "package": None,

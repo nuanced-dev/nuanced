@@ -5,7 +5,7 @@ import pytest
 from pathlib import Path, PosixPath
 import nuanced
 from nuanced import CodeGraph
-from nuanced.lib.call_graph import generate
+from nuanced.lib.call_graph import generate, BUILTIN_FUNCTION_PREFIX
 from nuanced.lib.utils import WithTimeoutResult
 
 def generate_call_graph(target, args, kwargs, timeout):
@@ -124,7 +124,26 @@ def test_enrich_with_nonexistent_function_name() -> None:
 def test_enrich_with_valid_input_returns_subgraph() -> None:
     filepath1 = os.path.abspath("foo.py")
     filepath2 = os.path.abspath("utils.py")
-    graph = { "foo.bar": { "filepath": filepath1, "callees": ["hello.world"] }, "hello.world": { "filepath": "hello.py", "callees": [] }, "utils.util": { "filepath": filepath2, "callees": [] } }
+    graph = {
+        "foo.bar": {
+            "filepath": filepath1,
+            "callees": ["hello.world"],
+            "lineno": 3,
+            "end_lineno": 5,
+        },
+        "hello.world": {
+            "filepath": "hello.py",
+            "callees": [],
+            "lineno": 3,
+            "end_lineno": 5,
+        },
+        "utils.util": {
+            "filepath": filepath2,
+            "callees": [],
+            "lineno": 3,
+            "end_lineno": 5,
+        },
+    }
     expected_result = dict()
     expected_result["foo.bar"] = graph["foo.bar"]
     expected_result["hello.world"] = graph["hello.world"]
@@ -138,7 +157,32 @@ def test_enrich_with_valid_function_path_handles_cycles() -> None:
     filepath1 = os.path.abspath("foo.py")
     filepath2 = os.path.abspath("hello.py")
     filepath3 = os.path.abspath("utils.py")
-    graph_with_cycle = { "foo.bar": { "filepath": filepath1, "callees": ["hello.world"] }, "hello.world": { "filepath": filepath2, "callees": ["utils.format"] }, "utils.util": { "filepath": "utils.py", "callees": [] }, "utils.format": { "filepath": filepath3, "callees": ["foo.bar"] } }
+    graph_with_cycle = {
+        "foo.bar": {
+            "filepath": filepath1,
+            "callees": ["hello.world"],
+            "lineno": 3,
+            "end_lineno": 5,
+         },
+        "hello.world": {
+            "filepath": filepath2,
+            "callees": ["utils.format"],
+            "lineno": 3,
+            "end_lineno": 5,
+        },
+        "utils.util": {
+            "filepath": "utils.py",
+            "callees": [],
+            "lineno": 3,
+            "end_lineno": 5,
+        },
+        "utils.format": {
+            "filepath": filepath3,
+            "callees": ["foo.bar"],
+            "lineno": 7,
+            "end_lineno": 9,
+        }
+    }
     expected_result = dict()
     expected_result["foo.bar"] = graph_with_cycle["foo.bar"]
     expected_result["hello.world"] = graph_with_cycle["hello.world"]
@@ -153,7 +197,26 @@ def test_enrich_with_valid_function_path_handles_missing_nodes() -> None:
     filepath1 = os.path.abspath("foo.py")
     filepath2 = os.path.abspath("hello.py")
     filepath3 = os.path.abspath("utils.py")
-    graph_with_missing_node = { "foo.bar": { "filepath": filepath1, "callees": ["hello.world"] }, "hello.world": { "filepath": filepath2, "callees": ["<builtin>.dict"] }, "utils.util": { "filepath": filepath3, "callees": [] } }
+    graph_with_missing_node = {
+        "foo.bar": {
+            "filepath": filepath1,
+            "callees": ["hello.world"],
+            "lineno": 3,
+            "end_lineno": 5,
+        },
+        "hello.world": {
+            "filepath": filepath2,
+            "callees": [],
+            "lineno": 3,
+            "end_lineno": 5,
+        },
+        "utils.util": {
+            "filepath": filepath3,
+            "callees": [],
+            "lineno": 3,
+            "end_lineno": 5,
+        },
+    }
     expected_result = dict()
     expected_result["foo.bar"] = graph_with_missing_node["foo.bar"]
     expected_result["hello.world"] = graph_with_missing_node["hello.world"]
@@ -162,6 +225,56 @@ def test_enrich_with_valid_function_path_handles_missing_nodes() -> None:
     result = code_graph.enrich(file_path=filepath1, function_name="bar")
 
     assert result.result == expected_result
+
+def test_enrich_with_valid_input_excludes_builtins_by_default(mocker) -> None:
+    filepath1 = os.path.abspath("foo.py")
+    graph = {
+        "foo.bar": {
+            "filepath": filepath1,
+            "callees": [f"{BUILTIN_FUNCTION_PREFIX}.len"],
+            "lineno": 3,
+            "end_lineno": 5,
+        },
+    }
+    code_graph = CodeGraph(graph)
+    expected_result = dict()
+    expected_result["foo.bar"] = {
+        "filepath": filepath1,
+        "callees": [],
+        "lineno": 3,
+        "end_lineno": 5,
+    }
+
+    result = code_graph.enrich(file_path=filepath1, function_name="bar")
+
+    assert result.result["foo.bar"]["callees"] == []
+
+def test_enrich_with_valid_input_includes_builtins(mocker) -> None:
+    filepath1 = os.path.abspath("foo.py")
+    graph = {
+        "foo.bar": {
+            "filepath": filepath1,
+            "callees": [f"{BUILTIN_FUNCTION_PREFIX}.len"],
+            "lineno": 3,
+            "end_lineno": 5,
+        },
+    }
+    code_graph = CodeGraph(graph)
+    expected_result = dict()
+    expected_result["foo.bar"] = {
+        "filepath": filepath1,
+        "callees": [],
+        "lineno": 3,
+        "end_lineno": 5,
+    }
+
+    result = code_graph.enrich(
+        file_path=filepath1,
+        function_name="bar",
+        include_builtins=True,
+    )
+
+    assert result.result["foo.bar"]["callees"] == ["<builtin>.len"]
 
 def test_enrich_with_valid_function_path_handles_multiple_definitions() -> None:
     filepath1 = os.path.abspath("foo.py")
