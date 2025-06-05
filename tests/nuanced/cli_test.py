@@ -2,13 +2,18 @@ from deepdiff import DeepDiff
 import json
 import os
 from typer.testing import CliRunner
-from nuanced import CodeGraph
+from nuanced import CodeGraph, __version__
 from nuanced.cli import app
 from nuanced.code_graph import CodeGraphResult, EnrichmentResult
 
 
 runner = CliRunner(mix_stderr=False)
 
+
+def test_version_displays_installed_version():
+    result = runner.invoke(app, ["--version"])
+
+    assert result.stdout == f"nuanced {__version__}\n"
 
 def test_enrich_finds_relevant_graph_in_file_dir(mocker):
     graph = { "foo.bar": { "filepath": os.path.abspath("foo.py"), "callees": [] } }

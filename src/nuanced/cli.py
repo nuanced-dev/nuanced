@@ -3,7 +3,7 @@ import os
 import typer
 from rich import print
 from rich.console import Console
-from nuanced import CodeGraph
+from nuanced import CodeGraph, __version__
 from nuanced.code_graph import CodeGraphResult
 
 app = typer.Typer()
@@ -49,6 +49,20 @@ def init(path: str) -> None:
     else:
         print("Done")
 
+@app.callback(invoke_without_command=True)
+def cli(
+    ctx: typer.Context,
+    version: bool = typer.Option(
+        None,
+        "-v",
+        "--version",
+        is_eager=True,
+        help="Display nuanced version.",
+    ),
+):
+    if version:
+        print(f"nuanced {__version__}")
+        raise typer.Exit()
 
 def _find_code_graph(file_path: str) -> CodeGraphResult:
     file_directory, _file_name = os.path.split(file_path)
