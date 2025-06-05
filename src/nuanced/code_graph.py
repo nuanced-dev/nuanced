@@ -92,7 +92,12 @@ class CodeGraph():
     def __init__(self, graph: dict | None) -> None:
         self.graph = graph
 
-    def enrich(self, file_path: str, function_name: str) -> EnrichmentResult:
+    def enrich(
+        self,
+        file_path: str,
+        function_name: str,
+        include_builtins: bool=False,
+    ) -> EnrichmentResult:
         absolute_filepath = os.path.abspath(file_path)
         graph_nodes_grouped_by_filepath = {k: [v[0] for v in v] for k, v in groupby(self.graph.items(), lambda x: x[1]["filepath"])}
         entrypoint_node_key = None
@@ -108,8 +113,24 @@ class CodeGraph():
 
         entrypoint_node_key = entrypoint_node_keys[0]
         subgraph = self._build_subgraph(entrypoint_node_key)
+        enriched_subgraph = {}
 
-        return EnrichmentResult(errors=[], result=subgraph)
+        for node_name, node_attrs in subgraph.items():
+            if include_builtins:
+                callees = node_attrs["callees"]
+            else:
+                callees = [c for c in node_attrs["callees"] if not c.startswith(call_graph.BUILTIN_FUNCTION_PREFIX)]
+
+            enriched_node_attrs = {
+                "filepath": node_attrs["filepath"],
+                "callees": callees,
+                "lineno": node_attrs.get("lineno", None),
+                "end_lineno": node_attrs.get("end_lineno", None),
+            }
+
+            enriched_subgraph[node_name] = enriched_node_attrs
+
+        return EnrichmentResult(errors=[], result=enriched_subgraph)
 
     def _build_subgraph(self, entrypoint_node_key: str) -> dict | None:
         subgraph = dict()

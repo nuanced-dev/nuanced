@@ -12,7 +12,11 @@ ERROR_EXIT_CODE = 1
 
 
 @app.command()
-def enrich(file_path: str, function_name: str) -> None:
+def enrich(
+    file_path: str,
+    function_name: str,
+    include_builtins: bool = typer.Option(False, "--include-builtins"),
+) -> None:
     err_console = Console(stderr=True)
     code_graph_result = _find_code_graph(file_path)
 
@@ -22,7 +26,11 @@ def enrich(file_path: str, function_name: str) -> None:
         raise typer.Exit(code=ERROR_EXIT_CODE)
 
     code_graph = code_graph_result.code_graph
-    result = code_graph.enrich(file_path=file_path, function_name=function_name)
+    result = code_graph.enrich(
+        file_path=file_path,
+        function_name=function_name,
+        include_builtins=include_builtins
+    )
 
     if len(result.errors) > 0:
         for error in result.errors:

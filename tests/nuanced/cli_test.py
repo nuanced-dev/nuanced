@@ -89,7 +89,11 @@ def test_enrich_fails_to_find_function_errors(mocker, monkeypatch):
     stub_graph = {}
     code_graph = CodeGraph(graph=stub_graph)
     error_result = EnrichmentResult(result=None, errors=[])
-    monkeypatch.setattr(code_graph, "enrich", lambda file_path, function_name: error_result)
+    monkeypatch.setattr(
+        code_graph,
+        "enrich",
+        lambda file_path, function_name, include_builtins: error_result
+    )
     mocker.patch(
         "nuanced.cli.CodeGraph.load",
         lambda directory: CodeGraphResult(code_graph=code_graph, errors=[]),
@@ -106,7 +110,11 @@ def test_enrich_fails_to_enrich_function_errors(mocker, monkeypatch):
     code_graph = CodeGraph(graph=stub_graph)
     error = ValueError("Something went wrong")
     error_result = EnrichmentResult(result=None, errors=[error])
-    monkeypatch.setattr(code_graph, "enrich", lambda file_path, function_name: error_result)
+    monkeypatch.setattr(
+        code_graph,
+        "enrich",
+        lambda file_path, function_name, include_builtins: error_result
+    )
     mocker.patch(
         "nuanced.cli.CodeGraph.load",
         lambda directory: CodeGraphResult(code_graph=code_graph, errors=[]),
@@ -122,11 +130,15 @@ def test_enrich_returns_subgraph_success(mocker):
     expected_output = {
         "foo.bar": {
             "filepath": os.path.abspath("foo.py"),
-            "callees": ["foo.baz"]
+            "callees": ["foo.baz"],
+            "lineno": 3,
+            "end_lineno": 5,
         },
         "foo.baz": {
             "filepath": os.path.abspath("foo.py"),
             "callees": [],
+            "lineno": 7,
+            "end_lineno": 9,
         },
     }
     code_graph = CodeGraph(graph=expected_output)
@@ -140,3 +152,43 @@ def test_enrich_returns_subgraph_success(mocker):
 
     assert diff == {}
     assert result.exit_code == 0
+
+def test_enrich_supports_include_builtins_option(mocker):
+    code_graph = mocker.MagicMock()
+    mocker.patch(
+        "nuanced.cli.CodeGraph.load",
+        lambda directory: CodeGraphResult(code_graph=code_graph, errors=[]),
+    )
+    mock_file = mocker.mock_open(read_data="")
+    mocker.patch("builtins.open", mock_file)
+    expected_enrich_args = {
+        "file_path": "foo.py",
+        "function_name": "bar",
+        "include_builtins": True,
+    }
+    code_graph_spy = mocker.spy(code_graph, "enrich")
+
+    runner.invoke(app, ["enrich", "foo.py", "bar", "--include-builtins"])
+
+    diff = DeepDiff(expected_enrich_args, code_graph_spy.mock_calls[0].kwargs)
+    assert diff == {}
+
+def test_enrich_disables_include_builtins_option_by_default(mocker):
+    code_graph = mocker.MagicMock()
+    mocker.patch(
+        "nuanced.cli.CodeGraph.load",
+        lambda directory: CodeGraphResult(code_graph=code_graph, errors=[]),
+    )
+    mock_file = mocker.mock_open(read_data="")
+    mocker.patch("builtins.open", mock_file)
+    expected_enrich_args = {
+        "file_path": "foo.py",
+        "function_name": "bar",
+        "include_builtins": False,
+    }
+    code_graph_spy = mocker.spy(code_graph, "enrich")
+
+    runner.invoke(app, ["enrich", "foo.py", "bar"])
+
+    diff = DeepDiff(expected_enrich_args, code_graph_spy.mock_calls[0].kwargs)
+    assert diff == {}
