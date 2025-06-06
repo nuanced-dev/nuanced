@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.7] - 2025-06-05
+
+### Added
+
+- Introduce `nuanced --version` and `nuanced -v` CLI options for displaying installed version of nuanced (https://github.com/nuanced-dev/nuanced/pull/78)
+- `CodeGraph::enrich` and `nuanced enrich` CLI command output includes edges to imported modules' attributes via jarviscg v0.1.0rc5 (https://github.com/nuanced-dev/nuanced/pull/76)
+
+### Fixed
+
+### Changed
+
+- `CodeGraph::enrich` and `nuanced enrich` CLI command output excludes builtins from callees by default with the option to include them (https://github.com/nuanced-dev/nuanced/pull/77)
+  - `CodeGraph::enrich` supports `include_builtins` keyword argument
+  - `nuanced enrich` supports `--include-builtins` flag
+
+### Removed
+
 ## [0.1.6] - 2025-05-27
 
 ### Added
