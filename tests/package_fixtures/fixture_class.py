@@ -1,4 +1,11 @@
 from datetime import datetime
+from .nested.nested_fixture_class import NestedFixtureClass
+
+
+def helper_function():
+    n = NestedFixtureClass()
+    n.hello_world()
+    return None
 
 class FixtureClass():
     def __init__(self):
