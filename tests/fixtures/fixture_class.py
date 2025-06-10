@@ -2,10 +2,10 @@ from datetime import datetime
 
 class FixtureClass():
     def __init__(self):
-        self.tzinfo = None
+        self.current_time = None
 
     def foo(self) -> None:
-        self.tzinfo = datetime.tzinfo()
+        self.current_time = datetime.now()
 
     def bar(self) -> None:
         self.foo()

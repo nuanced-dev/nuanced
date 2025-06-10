@@ -22,7 +22,7 @@ def test_generate_with_defaults_returns_call_graph_dict() -> None:
         },
         "tests.fixtures.fixture_class.FixtureClass.foo": {
             "filepath": os.path.abspath("tests/fixtures/fixture_class.py"),
-            "callees": ["datetime.datetime.tzinfo"],
+            "callees": ["datetime.datetime.now"],
             "lineno": 7,
             "end_lineno": 8,
         },
@@ -57,7 +57,7 @@ def test_generate_with_package_returns_call_graph_dict() -> None:
         },
         "fixtures.fixture_class.FixtureClass.foo": {
             "filepath": os.path.abspath("tests/fixtures/fixture_class.py"),
-            "callees": ["datetime.datetime.tzinfo"],
+            "callees": ["datetime.datetime.now"],
             "lineno": 7,
             "end_lineno": 8,
         },
