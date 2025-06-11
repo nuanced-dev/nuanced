@@ -3,74 +3,387 @@ import inspect
 import os
 import pytest
 from nuanced.lib import call_graph
-from tests.fixtures.fixture_class import FixtureClass
+from tests.package_fixtures.fixture_class import FixtureClass
 
-def test_generate_with_defaults_returns_call_graph_dict() -> None:
-    entry_points = [inspect.getfile(FixtureClass)]
+
+def test_generate_with_package_files_returns_call_graph_dict() -> None:
+    entry_points = [
+        "tests/package_fixtures/scripts/script.py",
+        "tests/package_fixtures/__init__.py",
+        "tests/package_fixtures/fixture_class.py",
+        "tests/package_fixtures/nested/nested_fixture_class.py",
+    ]
+    package_path = "tests/package_fixtures"
     expected = {
-        "tests.fixtures.fixture_class": {
-            "filepath": os.path.abspath("tests/fixtures/fixture_class.py"),
-            "callees": ["tests.fixtures.fixture_class.FixtureClass"],
-            "lineno": 1,
-            "end_lineno": 11,
+        "package_fixtures.nested.nested_fixture_class": {
+          "filepath": os.path.abspath("tests/package_fixtures/nested/nested_fixture_class.py"),
+          "callees": [
+            "package_fixtures.nested.nested_fixture_class.NestedFixtureClass"
+          ],
+          "lineno": 1,
+          "end_lineno": 3
         },
-        "tests.fixtures.fixture_class.FixtureClass.__init__": {
-            "filepath": os.path.abspath("tests/fixtures/fixture_class.py"),
-            "callees": [],
-            "lineno": 4,
-            "end_lineno": 5,
+        "package_fixtures.nested.nested_fixture_class.NestedFixtureClass.hello_world": {
+          "filepath": os.path.abspath("tests/package_fixtures/nested/nested_fixture_class.py"),
+          "callees": [],
+          "lineno": 2,
+          "end_lineno": 3
         },
-        "tests.fixtures.fixture_class.FixtureClass.foo": {
-            "filepath": os.path.abspath("tests/fixtures/fixture_class.py"),
-            "callees": ["datetime.datetime.tzinfo"],
-            "lineno": 7,
-            "end_lineno": 8,
+        "package_fixtures.scripts.script": {
+          "filepath": os.path.abspath("tests/package_fixtures/scripts/script.py"),
+          "callees": [
+            "package_fixtures.fixture_class",
+            "package_fixtures.scripts.script.run"
+          ],
+          "lineno": 1,
+          "end_lineno": 9
         },
-        "tests.fixtures.fixture_class.FixtureClass.bar": {
-            "filepath": os.path.abspath("tests/fixtures/fixture_class.py"),
-            "callees": ["tests.fixtures.fixture_class.FixtureClass.foo"],
-            "lineno": 10,
-            "end_lineno": 11,
+        "package_fixtures.scripts.script.run": {
+          "filepath": os.path.abspath("tests/package_fixtures/scripts/script.py"),
+          "callees": [
+            "package_fixtures.fixture_class.helper_function",
+            "package_fixtures.fixture_class.FixtureClass.bar",
+            "package_fixtures.fixture_class.FixtureClass.__init__"
+          ],
+          "lineno": 4,
+          "end_lineno": 7
+        },
+        "package_fixtures.fixture_class": {
+          "filepath": os.path.abspath("tests/package_fixtures/fixture_class.py"),
+          "callees": [
+            "package_fixtures.nested.nested_fixture_class",
+            "package_fixtures.fixture_class.FixtureClass"
+          ],
+          "lineno": 1,
+          "end_lineno": 18
+        },
+        "package_fixtures.fixture_class.helper_function": {
+          "filepath": os.path.abspath("tests/package_fixtures/fixture_class.py"),
+          "callees": [
+            "package_fixtures.nested.nested_fixture_class.NestedFixtureClass.hello_world"
+          ],
+          "lineno": 5,
+          "end_lineno": 8
+        },
+        "package_fixtures.fixture_class.FixtureClass.__init__": {
+          "filepath": os.path.abspath("tests/package_fixtures/fixture_class.py"),
+          "callees": [],
+          "lineno": 11,
+          "end_lineno": 12
+        },
+        "package_fixtures.fixture_class.FixtureClass.foo": {
+          "filepath": os.path.abspath("tests/package_fixtures/fixture_class.py"),
+          "callees": [
+            "datetime.datetime.now"
+          ],
+          "lineno": 14,
+          "end_lineno": 15
+        },
+        "package_fixtures.fixture_class.FixtureClass.bar": {
+          "filepath": os.path.abspath("tests/package_fixtures/fixture_class.py"),
+          "callees": [
+            "package_fixtures.fixture_class.FixtureClass.foo"
+          ],
+          "lineno": 17,
+          "end_lineno": 18
+        },
+        "package_fixtures": {
+          "filepath": os.path.abspath("tests/package_fixtures/__init__.py"),
+          "callees": [],
+          "lineno": 0,
+          "end_lineno": 0
+        }
+      }
+
+    call_graph_dict = call_graph.generate(entry_points, package_path=package_path)
+
+    diff = DeepDiff(call_graph_dict, expected, ignore_order=True)
+    assert diff == {}
+
+def test_generate_with_module_files_returns_call_graph_dict() -> None:
+    entry_points = [
+        "tests/module_fixtures/module_one.py",
+        "tests/module_fixtures/module_two.py",
+    ]
+    expected = {
+        "module_fixtures.module_one": {
+          "filepath": os.path.abspath("tests/module_fixtures/module_one.py"),
+          "callees": ["module_fixtures.module_two"],
+          "lineno": 1,
+          "end_lineno": 8
+        },
+        "module_fixtures.module_one.mod_one_fn_one": {
+          "filepath": os.path.abspath("tests/module_fixtures/module_one.py"),
+          "callees": [
+            "tests.package_fixtures.fixture_class.FixtureClass",
+            "module_fixtures.module_two.mod_two_fn_one"
+          ],
+          "lineno": 4,
+          "end_lineno": 8
+        },
+        "module_fixtures.module_two": {
+          "filepath": os.path.abspath("tests/module_fixtures/module_two.py"),
+          "callees": [],
+          "lineno": 1,
+          "end_lineno": 2
+        },
+        "module_fixtures.module_two.mod_two_fn_one": {
+          "filepath": os.path.abspath("tests/module_fixtures/module_two.py"),
+          "callees": [],
+          "lineno": 1,
+          "end_lineno": 2
+        },
+    }
+
+    call_graph_dict = call_graph.generate(entry_points, package_path="tests/module_fixtures")
+
+    diff = DeepDiff(call_graph_dict, expected, ignore_order=True)
+    assert diff == {}
+
+def test_generate_defaults_with_packages_and_modules_returns_call_graph_dict() -> None:
+    entry_points = [
+        'tests/package_fixtures/fixture_class.py',
+        'tests/package_fixtures/__init__.py',
+        'tests/package_fixtures/scripts/script.py',
+        'tests/package_fixtures/nested/nested_fixture_class.py',
+        'tests/module_fixtures/module_one.py',
+        'tests/module_fixtures/module_two.py',
+    ]
+    expected = {
+        "tests.package_fixtures.nested.nested_fixture_class": {
+           "filepath": os.path.abspath("tests/package_fixtures/nested/nested_fixture_class.py"),
+           "callees": [
+             "tests.package_fixtures.nested.nested_fixture_class.NestedFixtureClass"
+           ],
+           "lineno": 1,
+           "end_lineno": 3
+        },
+        "tests.package_fixtures.nested.nested_fixture_class.NestedFixtureClass.hello_world": {
+          "filepath": os.path.abspath("tests/package_fixtures/nested/nested_fixture_class.py"),
+          "callees": [],
+          "lineno": 2,
+          "end_lineno": 3
+        },
+        "tests.package_fixtures.scripts.script": {
+          "filepath": os.path.abspath("tests/package_fixtures/scripts/script.py"),
+          "callees": [
+            "tests.package_fixtures.scripts.script.run"
+          ],
+          "lineno": 1,
+          "end_lineno": 9
+        },
+        "tests.package_fixtures.scripts.script.run": {
+          "filepath": os.path.abspath("tests/package_fixtures/scripts/script.py"),
+          "callees": [
+            "tests.package_fixtures.fixture_class.helper_function",
+            "fixture_class.FixtureClass"
+          ],
+          "lineno": 4,
+          "end_lineno": 7
+        },
+        "tests.module_fixtures.module_one": {
+          "filepath": os.path.abspath("tests/module_fixtures/module_one.py"),
+          "callees": [],
+          "lineno": 1,
+          "end_lineno": 8
+        },
+        "tests.module_fixtures.module_one.mod_one_fn_one": {
+          "filepath": os.path.abspath("tests/module_fixtures/module_one.py"),
+          "callees": [
+            "tests.package_fixtures.fixture_class.FixtureClass.foo",
+            "module_two.mod_two_fn_one",
+            "tests.package_fixtures.fixture_class.FixtureClass.__init__"
+          ],
+          "lineno": 4,
+          "end_lineno": 8
+        },
+        "tests.module_fixtures.module_two": {
+          "filepath": os.path.abspath("tests/module_fixtures/module_two.py"),
+          "callees": [],
+          "lineno": 1,
+          "end_lineno": 2
+        },
+        "tests.module_fixtures.module_two.mod_two_fn_one": {
+          "filepath": os.path.abspath("tests/module_fixtures/module_two.py"),
+          "callees": [],
+          "lineno": 1,
+          "end_lineno": 2
+        },
+        "tests.package_fixtures": {
+          "filepath": os.path.abspath("tests/package_fixtures/__init__.py"),
+          "callees": [],
+          "lineno": 0,
+          "end_lineno": 0
+        },
+        "tests.package_fixtures.fixture_class": {
+          "filepath": os.path.abspath("tests/package_fixtures/fixture_class.py"),
+          "callees": [
+            "tests.package_fixtures.fixture_class.FixtureClass"
+          ],
+          "lineno": 1,
+          "end_lineno": 18
+        },
+        "tests.package_fixtures.fixture_class.helper_function": {
+          "filepath": os.path.abspath("tests/package_fixtures/fixture_class.py"),
+          "callees": [
+            "nested.nested_fixture_class.NestedFixtureClass"
+          ],
+          "lineno": 5,
+          "end_lineno": 8
+        },
+        "tests.package_fixtures.fixture_class.FixtureClass.__init__": {
+          "filepath": os.path.abspath("tests/package_fixtures/fixture_class.py"),
+          "callees": [],
+          "lineno": 11,
+          "end_lineno": 12
+        },
+        "tests.package_fixtures.fixture_class.FixtureClass.foo": {
+          "filepath": os.path.abspath("tests/package_fixtures/fixture_class.py"),
+          "callees": [
+            "datetime.datetime.now"
+          ],
+          "lineno": 14,
+          "end_lineno": 15
+        },
+        "tests.package_fixtures.fixture_class.FixtureClass.bar": {
+          "filepath": os.path.abspath("tests/package_fixtures/fixture_class.py"),
+          "callees": [
+            "tests.package_fixtures.fixture_class.FixtureClass.foo"
+          ],
+          "lineno": 17,
+          "end_lineno": 18
         }
     }
 
     call_graph_dict = call_graph.generate(entry_points)
 
-    diff = DeepDiff(call_graph_dict, expected)
-
+    diff = DeepDiff(call_graph_dict, expected, ignore_order=True)
     assert diff == {}
 
-def test_generate_with_package_returns_call_graph_dict() -> None:
-    entry_points = [inspect.getfile(FixtureClass)]
+def test_generate_with_packages_and_modules_returns_call_graph_dict() -> None:
+    entry_points = [
+        'tests/package_fixtures/fixture_class.py',
+        'tests/package_fixtures/__init__.py',
+        'tests/package_fixtures/scripts/script.py',
+        'tests/package_fixtures/nested/nested_fixture_class.py',
+        'tests/module_fixtures/module_one.py',
+        'tests/module_fixtures/module_two.py',
+    ]
+    package_path = "tests/package_fixtures"
     expected = {
-        "fixtures.fixture_class": {
-            "filepath": os.path.abspath("tests/fixtures/fixture_class.py"),
-            "callees": ["fixtures.fixture_class.FixtureClass"],
-            "lineno": 1,
-            "end_lineno": 11,
+        "package_fixtures.nested.nested_fixture_class": {
+          "filepath": os.path.abspath("tests/package_fixtures/nested/nested_fixture_class.py"),
+          "callees": [
+            "package_fixtures.nested.nested_fixture_class.NestedFixtureClass"
+          ],
+          "lineno": 1,
+          "end_lineno": 3
         },
-        "fixtures.fixture_class.FixtureClass.__init__": {
-            "filepath": os.path.abspath("tests/fixtures/fixture_class.py"),
-            "callees": [],
-            "lineno": 4,
-            "end_lineno": 5,
+        "package_fixtures.nested.nested_fixture_class.NestedFixtureClass.hello_world": {
+          "filepath": os.path.abspath("tests/package_fixtures/nested/nested_fixture_class.py"),
+          "callees": [],
+          "lineno": 2,
+          "end_lineno": 3
         },
-        "fixtures.fixture_class.FixtureClass.foo": {
-            "filepath": os.path.abspath("tests/fixtures/fixture_class.py"),
-            "callees": ["datetime.datetime.tzinfo"],
-            "lineno": 7,
-            "end_lineno": 8,
+        "package_fixtures.scripts.script": {
+          "filepath": os.path.abspath("tests/package_fixtures/scripts/script.py"),
+          "callees": [
+            "package_fixtures.fixture_class",
+            "package_fixtures.scripts.script.run"
+          ],
+          "lineno": 1,
+          "end_lineno": 9
         },
-        "fixtures.fixture_class.FixtureClass.bar": {
-            "filepath": os.path.abspath("tests/fixtures/fixture_class.py"),
-            "callees": ["fixtures.fixture_class.FixtureClass.foo"],
-            "lineno": 10,
-            "end_lineno": 11,
+        "package_fixtures.scripts.script.run": {
+          "filepath": os.path.abspath("tests/package_fixtures/scripts/script.py"),
+          "callees": [
+            "package_fixtures.fixture_class.FixtureClass.bar",
+            "package_fixtures.fixture_class.helper_function",
+            "package_fixtures.fixture_class.FixtureClass.__init__"
+          ],
+          "lineno": 4,
+          "end_lineno": 7
+        },
+        "package_fixtures.fixture_class": {
+          "filepath": os.path.abspath("tests/package_fixtures/fixture_class.py"),
+          "callees": [
+            "package_fixtures.nested.nested_fixture_class",
+            "package_fixtures.fixture_class.FixtureClass"
+          ],
+          "lineno": 1,
+          "end_lineno": 18
+        },
+        "package_fixtures.fixture_class.helper_function": {
+          "filepath": os.path.abspath("tests/package_fixtures/fixture_class.py"),
+          "callees": [
+            "package_fixtures.nested.nested_fixture_class.NestedFixtureClass.hello_world"
+          ],
+          "lineno": 5,
+          "end_lineno": 8
+        },
+        "package_fixtures.fixture_class.FixtureClass.__init__": {
+          "filepath": os.path.abspath("tests/package_fixtures/fixture_class.py"),
+          "callees": [],
+          "lineno": 11,
+          "end_lineno": 12
+        },
+        "package_fixtures.fixture_class.FixtureClass.foo": {
+          "filepath": os.path.abspath("tests/package_fixtures/fixture_class.py"),
+          "callees": [
+            "datetime.datetime.now"
+          ],
+          "lineno": 14,
+          "end_lineno": 15
+        },
+        "package_fixtures.fixture_class.FixtureClass.bar": {
+          "filepath": os.path.abspath("tests/package_fixtures/fixture_class.py"),
+          "callees": [
+            "package_fixtures.fixture_class.FixtureClass.foo"
+          ],
+          "lineno": 17,
+          "end_lineno": 18
+        },
+        "module_fixtures.module_one": {
+          "filepath": os.path.abspath("tests/module_fixtures/module_one.py"),
+          "callees": [
+            "package_fixtures.fixture_class",
+            "module_fixtures.module_two"
+          ],
+          "lineno": 1,
+          "end_lineno": 8
+        },
+        "module_fixtures.module_one.mod_one_fn_one": {
+          "filepath": os.path.abspath("tests/module_fixtures/module_one.py"),
+          "callees": [
+            "module_fixtures.module_two.mod_two_fn_one",
+            "module_two.mod_two_fn_one",
+            "package_fixtures.fixture_class.FixtureClass.foo",
+            "package_fixtures.fixture_class.FixtureClass.__init__"
+          ],
+          "lineno": 4,
+          "end_lineno": 8
+        },
+        "module_fixtures.module_two": {
+          "filepath": os.path.abspath("tests/module_fixtures/module_two.py"),
+          "callees": [],
+          "lineno": 1,
+          "end_lineno": 2
+        },
+        "module_fixtures.module_two.mod_two_fn_one": {
+          "filepath": os.path.abspath("tests/module_fixtures/module_two.py"),
+          "callees": [],
+          "lineno": 1,
+          "end_lineno": 2
+        },
+        "package_fixtures": {
+          "filepath": os.path.abspath("tests/package_fixtures/__init__.py"),
+          "callees": [],
+          "lineno": 0,
+          "end_lineno": 0
         }
     }
 
-    call_graph_dict = call_graph.generate(entry_points, package_path="tests/fixtures")
+    call_graph_dict = call_graph.generate(entry_points, package_path=package_path)
 
-    diff = DeepDiff(call_graph_dict, expected)
-
+    diff = DeepDiff(call_graph_dict, expected, ignore_order=True)
     assert diff == {}

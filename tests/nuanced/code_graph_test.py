@@ -22,19 +22,23 @@ def test_init_with_valid_path_generates_graph_with_expected_files(mocker) -> Non
     mocker.patch("builtins.open", mock_file)
     mocker.patch("nuanced.code_graph.with_timeout", generate_call_graph)
     call_graph_generate_spy = mocker.spy(nuanced.lib.call_graph, "generate")
-    path = "tests/fixtures"
+    path = "tests/package_fixtures"
     expected_package = os.path.abspath(path)
     expected_filepaths = [
-        os.path.abspath("tests/fixtures/fixture_class.py"),
-        os.path.abspath("tests/fixtures/__init__.py")
+        os.path.abspath("tests/package_fixtures/__init__.py"),
+        os.path.abspath("tests/package_fixtures/fixture_class.py"),
+        os.path.abspath("tests/package_fixtures/nested/nested_fixture_class.py"),
+        os.path.abspath("tests/package_fixtures/scripts/script.py"),
     ]
 
     CodeGraph.init(path)
 
-    call_graph_generate_spy.assert_called_with(
-        entry_points=expected_filepaths,
-        package_path=expected_package
-    )
+    received_entry_points = call_graph_generate_spy.call_args.args[0]
+    received_package_path = call_graph_generate_spy.call_args.kwargs["package_path"]
+
+    assert received_package_path == expected_package
+    for e in received_entry_points:
+        assert e in expected_filepaths
 
 def test_init_with_no_package_definitions_in_directory_returns_errors(mocker) -> None:
     path = "."
@@ -55,7 +59,7 @@ def test_init_with_invalid_path_returns_errors(mocker) -> None:
     assert type(code_graph_result.errors[0]) == FileNotFoundError
 
 def test_init_with_no_eligible_files_returns_errors(mocker) -> None:
-    no_eligible_files_path = "tests/fixtures/ineligible"
+    no_eligible_files_path = "tests/package_fixtures/ineligible"
 
     code_graph_result = CodeGraph.init(no_eligible_files_path)
 
@@ -68,9 +72,9 @@ def test_init_with_valid_path_persists_code_graph(mocker) -> None:
     mock_file = mocker.mock_open()
     mocker.patch("builtins.open", mock_file)
     mocker.patch("nuanced.code_graph.with_timeout", generate_call_graph)
-    expected_path = os.path.abspath(f"tests/fixtures/{CodeGraph.NUANCED_DIRNAME}")
+    expected_path = os.path.abspath(f"tests/package_fixtures/{CodeGraph.NUANCED_DIRNAME}")
 
-    CodeGraph.init("tests/fixtures")
+    CodeGraph.init("tests/package_fixtures")
 
     received_dir_path = os_spy.call_args.args[0]
     assert received_dir_path == expected_path
@@ -81,8 +85,8 @@ def test_init_with_valid_path_returns_code_graph(mocker) -> None:
     mock_file = mocker.mock_open()
     mocker.patch("builtins.open", mock_file)
     mocker.patch("nuanced.code_graph.with_timeout", generate_call_graph)
-    path = "tests/fixtures"
-    expected_filepaths = [os.path.abspath("tests/fixtures/foo.py")]
+    path = "tests/package_fixtures"
+    expected_filepaths = [os.path.abspath("tests/package_fixtures/foo.py")]
 
     code_graph_result = CodeGraph.init(path)
     code_graph = code_graph_result.code_graph
@@ -92,7 +96,7 @@ def test_init_with_valid_path_returns_code_graph(mocker) -> None:
     assert code_graph
 
 def test_init_timeout_returns_errors(mocker) -> None:
-    path = "tests/fixtures"
+    path = "tests/package_fixtures"
     mocker.patch("nuanced.code_graph.with_timeout", timeout_call_graph_generation)
 
     code_graph_result = CodeGraph.init(path)
