@@ -8,7 +8,7 @@ authors = [
 ]
 requires-python = ">=3.10"
 dependencies = [
-    "jarviscg==0.1.0rc5",
+    "jarviscg",
     "setuptools>=75.3.0",
     "typer>=0.15.1",
 ]
@@ -31,3 +31,6 @@ dev = [
 pythonpath = [
     "."
 ]
+
+[tool.uv.sources]
+jarviscg = { path = "../jarviscg" }
