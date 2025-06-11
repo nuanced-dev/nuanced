@@ -11,20 +11,20 @@ def test_generate_with_package_files_returns_call_graph_dict() -> None:
         "tests/package_fixtures/scripts/script.py",
         "tests/package_fixtures/__init__.py",
         "tests/package_fixtures/fixture_class.py",
-        "tests/package_fixtures/nested/nested_fixture_class.py",
+        "tests/package_fixtures/nested_modules/nested_fixture_class.py",
     ]
     package_path = "tests/package_fixtures"
     expected = {
-        "package_fixtures.nested.nested_fixture_class": {
-          "filepath": os.path.abspath("tests/package_fixtures/nested/nested_fixture_class.py"),
+        "package_fixtures.nested_modules.nested_fixture_class": {
+          "filepath": os.path.abspath("tests/package_fixtures/nested_modules/nested_fixture_class.py"),
           "callees": [
-            "package_fixtures.nested.nested_fixture_class.NestedFixtureClass"
+            "package_fixtures.nested_modules.nested_fixture_class.NestedFixtureClass"
           ],
           "lineno": 1,
           "end_lineno": 3
         },
-        "package_fixtures.nested.nested_fixture_class.NestedFixtureClass.hello_world": {
-          "filepath": os.path.abspath("tests/package_fixtures/nested/nested_fixture_class.py"),
+        "package_fixtures.nested_modules.nested_fixture_class.NestedFixtureClass.hello_world": {
+          "filepath": os.path.abspath("tests/package_fixtures/nested_modules/nested_fixture_class.py"),
           "callees": [],
           "lineno": 2,
           "end_lineno": 3
@@ -51,7 +51,7 @@ def test_generate_with_package_files_returns_call_graph_dict() -> None:
         "package_fixtures.fixture_class": {
           "filepath": os.path.abspath("tests/package_fixtures/fixture_class.py"),
           "callees": [
-            "package_fixtures.nested.nested_fixture_class",
+            "package_fixtures.nested_modules.nested_fixture_class",
             "package_fixtures.fixture_class.FixtureClass"
           ],
           "lineno": 1,
@@ -60,7 +60,7 @@ def test_generate_with_package_files_returns_call_graph_dict() -> None:
         "package_fixtures.fixture_class.helper_function": {
           "filepath": os.path.abspath("tests/package_fixtures/fixture_class.py"),
           "callees": [
-            "package_fixtures.nested.nested_fixture_class.NestedFixtureClass.hello_world"
+            "package_fixtures.nested_modules.nested_fixture_class.NestedFixtureClass.hello_world"
           ],
           "lineno": 5,
           "end_lineno": 8
@@ -145,21 +145,21 @@ def test_generate_defaults_with_packages_and_modules_returns_call_graph_dict() -
         'tests/package_fixtures/fixture_class.py',
         'tests/package_fixtures/__init__.py',
         'tests/package_fixtures/scripts/script.py',
-        'tests/package_fixtures/nested/nested_fixture_class.py',
+        'tests/package_fixtures/nested_modules/nested_fixture_class.py',
         'tests/module_fixtures/module_one.py',
         'tests/module_fixtures/module_two.py',
     ]
     expected = {
-        "tests.package_fixtures.nested.nested_fixture_class": {
-           "filepath": os.path.abspath("tests/package_fixtures/nested/nested_fixture_class.py"),
+        "tests.package_fixtures.nested_modules.nested_fixture_class": {
+           "filepath": os.path.abspath("tests/package_fixtures/nested_modules/nested_fixture_class.py"),
            "callees": [
-             "tests.package_fixtures.nested.nested_fixture_class.NestedFixtureClass"
+             "tests.package_fixtures.nested_modules.nested_fixture_class.NestedFixtureClass"
            ],
            "lineno": 1,
            "end_lineno": 3
         },
-        "tests.package_fixtures.nested.nested_fixture_class.NestedFixtureClass.hello_world": {
-          "filepath": os.path.abspath("tests/package_fixtures/nested/nested_fixture_class.py"),
+        "tests.package_fixtures.nested_modules.nested_fixture_class.NestedFixtureClass.hello_world": {
+          "filepath": os.path.abspath("tests/package_fixtures/nested_modules/nested_fixture_class.py"),
           "callees": [],
           "lineno": 2,
           "end_lineno": 3
@@ -226,7 +226,7 @@ def test_generate_defaults_with_packages_and_modules_returns_call_graph_dict() -
         "tests.package_fixtures.fixture_class.helper_function": {
           "filepath": os.path.abspath("tests/package_fixtures/fixture_class.py"),
           "callees": [
-            "nested.nested_fixture_class.NestedFixtureClass"
+            "nested_modules.nested_fixture_class.NestedFixtureClass"
           ],
           "lineno": 5,
           "end_lineno": 8
@@ -265,22 +265,22 @@ def test_generate_with_packages_and_modules_returns_call_graph_dict() -> None:
         'tests/package_fixtures/fixture_class.py',
         'tests/package_fixtures/__init__.py',
         'tests/package_fixtures/scripts/script.py',
-        'tests/package_fixtures/nested/nested_fixture_class.py',
+        'tests/package_fixtures/nested_modules/nested_fixture_class.py',
         'tests/module_fixtures/module_one.py',
         'tests/module_fixtures/module_two.py',
     ]
     package_path = "tests/package_fixtures"
     expected = {
-        "package_fixtures.nested.nested_fixture_class": {
-          "filepath": os.path.abspath("tests/package_fixtures/nested/nested_fixture_class.py"),
+        "package_fixtures.nested_modules.nested_fixture_class": {
+          "filepath": os.path.abspath("tests/package_fixtures/nested_modules/nested_fixture_class.py"),
           "callees": [
-            "package_fixtures.nested.nested_fixture_class.NestedFixtureClass"
+            "package_fixtures.nested_modules.nested_fixture_class.NestedFixtureClass"
           ],
           "lineno": 1,
           "end_lineno": 3
         },
-        "package_fixtures.nested.nested_fixture_class.NestedFixtureClass.hello_world": {
-          "filepath": os.path.abspath("tests/package_fixtures/nested/nested_fixture_class.py"),
+        "package_fixtures.nested_modules.nested_fixture_class.NestedFixtureClass.hello_world": {
+          "filepath": os.path.abspath("tests/package_fixtures/nested_modules/nested_fixture_class.py"),
           "callees": [],
           "lineno": 2,
           "end_lineno": 3
@@ -307,7 +307,7 @@ def test_generate_with_packages_and_modules_returns_call_graph_dict() -> None:
         "package_fixtures.fixture_class": {
           "filepath": os.path.abspath("tests/package_fixtures/fixture_class.py"),
           "callees": [
-            "package_fixtures.nested.nested_fixture_class",
+            "package_fixtures.nested_modules.nested_fixture_class",
             "package_fixtures.fixture_class.FixtureClass"
           ],
           "lineno": 1,
@@ -316,7 +316,7 @@ def test_generate_with_packages_and_modules_returns_call_graph_dict() -> None:
         "package_fixtures.fixture_class.helper_function": {
           "filepath": os.path.abspath("tests/package_fixtures/fixture_class.py"),
           "callees": [
-            "package_fixtures.nested.nested_fixture_class.NestedFixtureClass.hello_world"
+            "package_fixtures.nested_modules.nested_fixture_class.NestedFixtureClass.hello_world"
           ],
           "lineno": 5,
           "end_lineno": 8

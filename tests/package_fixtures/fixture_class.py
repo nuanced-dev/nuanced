@@ -1,5 +1,5 @@
 from datetime import datetime
-from .nested.nested_fixture_class import NestedFixtureClass
+from .nested_modules.nested_fixture_class import NestedFixtureClass
 
 
 def helper_function():
