@@ -27,8 +27,10 @@ def test_init_with_valid_path_generates_graph_with_expected_files(mocker) -> Non
     expected_filepaths = [
         os.path.abspath("tests/package_fixtures/__init__.py"),
         os.path.abspath("tests/package_fixtures/fixture_class.py"),
-        os.path.abspath("tests/package_fixtures/nested/nested_fixture_class.py"),
+        os.path.abspath("tests/package_fixtures/nested_modules/nested_fixture_class.py"),
         os.path.abspath("tests/package_fixtures/scripts/script.py"),
+        os.path.abspath("tests/package_fixtures/nested_package/__init__.py"),
+        os.path.abspath("tests/package_fixtures/nested_package/mod_one.py"),
     ]
 
     CodeGraph.init(path)
