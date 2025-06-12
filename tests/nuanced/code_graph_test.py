@@ -42,16 +42,6 @@ def test_init_with_valid_path_generates_graph_with_expected_files(mocker) -> Non
     for e in received_entry_points:
         assert e in expected_filepaths
 
-def test_init_with_no_package_definitions_in_directory_returns_errors(mocker) -> None:
-    path = "."
-    expected_error_message = f"No package definition found in {os.path.abspath(path)}: `__init__.py` missing"
-
-    code_graph_result = CodeGraph.init(path)
-
-    assert len(code_graph_result.errors) == 1
-    assert type(code_graph_result.errors[0]) == ValueError
-    assert str(code_graph_result.errors[0]) == expected_error_message
-
 def test_init_with_invalid_path_returns_errors(mocker) -> None:
     invalid_path = "foo"
 

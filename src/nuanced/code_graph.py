@@ -42,9 +42,6 @@ class CodeGraph():
             if len(eligible_absolute_filepaths) == 0:
                 error = ValueError(f"No eligible files found in {absolute_path_to_package}")
                 errors.append(error)
-            elif f"{absolute_path_to_package}/__init__.py" not in eligible_absolute_filepaths:
-                error = ValueError(f"No package definition found in {absolute_path_to_package}: `__init__.py` missing")
-                errors.append(error)
             else:
                 call_graph_result = with_timeout(
                     target=call_graph.generate,
