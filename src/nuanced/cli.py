@@ -18,7 +18,8 @@ def enrich(
     include_builtins: bool = typer.Option(False, "--include-builtins"),
 ) -> None:
     err_console = Console(stderr=True)
-    code_graph_result = _find_code_graph(file_path)
+    inferred_graph_dir = "."
+    code_graph_result = CodeGraph.load(directory=inferred_graph_dir)
 
     if len(code_graph_result.errors) > 0:
         for error in code_graph_result.errors:
@@ -71,23 +72,6 @@ def cli(
     if version:
         print(f"nuanced {__version__}")
         raise typer.Exit()
-
-def _find_code_graph(file_path: str) -> CodeGraphResult:
-    file_directory, _file_name = os.path.split(file_path)
-    code_graph_result = CodeGraph.load(directory=file_directory)
-
-    if len(code_graph_result.errors) > 0:
-        top_directory = file_directory.split("/")[0]
-
-        for root, dirs, _files in os.walk(top_directory, topdown=False):
-            commonprefix = os.path.commonprefix([root, file_directory])
-
-            if commonprefix == root and CodeGraph.NUANCED_DIRNAME in dirs:
-                code_graph_result = CodeGraph.load(directory=root)
-                break
-
-    return code_graph_result
-
 
 def main() -> None:
     app()
