@@ -42,7 +42,7 @@ def grouped_by_package(file_paths: list[str]):
 
     for path in file_paths:
         if path.endswith("__init__.py"):
-            package_root = "/".join(path.split("/")[:-1])
+            package_root = path.rsplit("/", 1)[0]
             is_nested_package = any(package_root.startswith(p) for p in package_roots)
             if not is_nested_package:
                 package_roots.add(package_root)
@@ -62,7 +62,7 @@ def grouped_by_directory(file_paths: list[str]):
     directory_groups = {}
 
     for path in file_paths:
-        directory = "/".join(path.split("/")[:-1])
+        directory = path.rsplit("/", 1)[0]
 
         if directory not in directory_groups:
             directory_groups[directory] = []
