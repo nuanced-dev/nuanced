@@ -5,6 +5,12 @@ import pytest
 from nuanced.lib import call_graph
 from tests.package_fixtures.fixture_class import FixtureClass
 
+def test_generate_with_top_level_package_sets_correct_scope_prefix() -> None:
+    entry_points = ["tests/__init__.py"]
+
+    call_graph_dict = call_graph.generate(entry_points)
+
+    assert "tests" in call_graph_dict
 
 def test_generate_with_nested_package_returns_call_graph_dict() -> None:
     entry_points = [
