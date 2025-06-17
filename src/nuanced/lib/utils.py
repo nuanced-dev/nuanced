@@ -40,21 +40,21 @@ def grouped_by_package(file_paths: list[str]):
     packages = {}
     package_roots = set()
 
+    package_definition_file_paths = list(filter(lambda p: p.endswith("__init__.py"), file_paths))
+
+    for path in package_definition_file_paths:
+        package_root = path.rsplit("/", 1)[0]
+        is_nested_package = any(package_root.startswith(p) for p in package_roots)
+        if not is_nested_package:
+            package_roots.add(package_root)
+
     for path in file_paths:
-        if path.endswith("__init__.py"):
-            package_root = path.rsplit("/", 1)[0]
-            is_nested_package = any(package_root.startswith(p) for p in package_roots)
-            if not is_nested_package:
-                package_roots.add(package_root)
-
-    for package_root in package_roots:
-        package_files = []
-        for path in file_paths:
+        for package_root in package_roots:
             if path.startswith(package_root + "/"):
-                package_files.append(path)
-
-        if package_files:
-            packages[package_root] = package_files
+                if package_root not in packages:
+                    packages[package_root] = []
+                packages[package_root].append(path)
+                break
 
     return packages
 
