@@ -203,3 +203,44 @@ def test_generate_defaults_with_packages_and_modules_returns_call_graph_dict() -
         callees = call_graph_dict[caller]["callees"]
         diff = DeepDiff(expected_callees, callees, ignore_order=True)
         assert diff == {}
+
+def test_generate_output_includes_file_path_and_line_numbers() -> None:
+    entry_points = [
+        "tests/package_fixtures/nested_package/mod_one.py",
+    ]
+    expected = {
+        "tests.package_fixtures.nested_package.mod_one": {
+            "filepath": os.path.abspath("tests/package_fixtures/nested_package/mod_one.py"),
+            "callees": [
+                "tests.module_fixtures.module_two"
+            ],
+            "lineno": 1,
+            "end_lineno": 4
+        },
+        "tests.package_fixtures.nested_package.mod_one.nested_package_mod_one_fn_one": {
+            "filepath": os.path.abspath("tests/package_fixtures/nested_package/mod_one.py"),
+            "callees": [
+                "tests.module_fixtures.module_two.mod_two_fn_one"
+            ],
+            "lineno": 3,
+            "end_lineno": 4
+        },
+        "tests.module_fixtures.module_two": {
+            "filepath": os.path.abspath("tests/module_fixtures/module_two.py"),
+            "callees": [],
+            "lineno": 1,
+            "end_lineno": 2
+        },
+        "tests.module_fixtures.module_two.mod_two_fn_one": {
+            "filepath": os.path.abspath("tests/module_fixtures/module_two.py"),
+            "callees": [],
+            "lineno": 1,
+            "end_lineno": 2
+        }
+    }
+
+    call_graph_dict = call_graph.generate(entry_points)
+
+    diff = DeepDiff(expected, call_graph_dict, ignore_order=True)
+    assert diff == {}
+
