@@ -38,7 +38,12 @@ def _generate_package_call_graph(*, file_paths=list[str], package_dir_path: str)
     )
     call_graph.analyze()
     graph_root = os.getcwd()
-    scope_prefix = os.path.relpath(package_dir_path, graph_root).replace("/", ".")
+    path_from_cwd_to_package_dir = os.path.relpath(package_dir_path, graph_root)
+    scope_prefix = None
+
+    if path_from_cwd_to_package_dir.count(os.sep) > 0:
+        scope_prefix = path_from_cwd_to_package_dir.replace(os.sep, ".")
+
     formatter = formats.Nuanced(call_graph, scope_prefix=scope_prefix)
     return formatter.generate()
 
