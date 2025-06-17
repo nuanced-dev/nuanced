@@ -243,4 +243,3 @@ def test_generate_output_includes_file_path_and_line_numbers() -> None:
 
     diff = DeepDiff(expected, call_graph_dict, ignore_order=True)
     assert diff == {}
-
