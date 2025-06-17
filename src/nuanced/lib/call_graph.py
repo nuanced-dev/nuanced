@@ -26,7 +26,7 @@ def generate(entry_points: list, **kwargs) -> dict:
 
     return graph
 
-def _generate_package_call_graph(*, file_paths=list[str], package_dir_path: str) -> None:
+def _generate_package_call_graph(*, file_paths=list[str], package_dir_path: str) -> dict:
     package_path_parts = package_dir_path.split("/")
     package_parent_path = "/".join(package_path_parts[0:-1])
     call_graph = CallGraphGenerator(
@@ -42,7 +42,7 @@ def _generate_package_call_graph(*, file_paths=list[str], package_dir_path: str)
     formatter = formats.Nuanced(call_graph, scope_prefix=scope_prefix)
     return formatter.generate()
 
-def _generate_modules_call_graph(*, file_paths=list[str]) -> None:
+def _generate_modules_call_graph(*, file_paths=list[str]) -> dict:
     call_graph = CallGraphGenerator(
         file_paths,
         os.getcwd(),
