@@ -340,7 +340,6 @@ def test_generate_defaults_with_packages_and_modules_returns_call_graph_dict() -
           "callees": [
             "tests.package_fixtures.fixture_class.FixtureClass.foo",
             "tests.package_fixtures.fixture_class.FixtureClass.__init__",
-            "tests.package_fixtures.fixture_class.FixtureClass.__init__",
             "tests.module_fixtures.module_two.mod_two_fn_one",
             "module_two.mod_two_fn_one",
           ],
