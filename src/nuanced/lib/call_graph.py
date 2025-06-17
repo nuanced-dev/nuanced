@@ -38,8 +38,8 @@ def _generate_package_call_graph(*, file_paths=list[str], package_dir_path: str)
     )
     call_graph.analyze()
     graph_root = os.getcwd()
-    relpath = os.path.relpath(package_dir_path, graph_root)
-    formatter = formats.Nuanced(call_graph, relpath=relpath)
+    scope_prefix = os.path.relpath(package_dir_path, graph_root).replace("/", ".")
+    formatter = formats.Nuanced(call_graph, scope_prefix=scope_prefix)
     return formatter.generate()
 
 def _generate_modules_call_graph(*, file_paths=list[str]) -> None:
