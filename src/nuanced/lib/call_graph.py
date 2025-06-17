@@ -17,7 +17,7 @@ def generate(entry_points: list, **kwargs) -> dict:
             file_paths=file_paths,
             package_dir_path=dir_path
         )
-        graph |= package_call_graph
+        graph.update(package_call_graph)
 
     for file_paths in modules_by_dir.values():
         modules_call_graph = _generate_modules_call_graph(file_paths=file_paths)
