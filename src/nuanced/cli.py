@@ -7,16 +7,19 @@ from nuanced import CodeGraph, __version__
 from nuanced.code_graph import CodeGraphResult, DEFAULT_INIT_TIMEOUT_SECONDS
 from typing_extensions import Annotated, Optional
 
-app = typer.Typer()
+app = typer.Typer(
+    context_settings={"help_option_names": ["-h", "--help"]},
+    help="Python code intelligence for agentic developer workflows."
+)
 
 ERROR_EXIT_CODE = 1
 
 
-@app.command()
+@app.command(help="Enrich a function and its callees and print enriched function call graph as JSON.")
 def enrich(
-    file_path: str,
-    function_name: str,
-    include_builtins: bool = typer.Option(False, "--include-builtins"),
+    file_path: Annotated[str, typer.Argument(metavar="src/foo/bar.py", help="Path to file containing function definition.")],
+    function_name: Annotated[str, typer.Argument(metavar="hello_world", help="Partial or fully qualified name of function.")],
+    include_builtins: Annotated[bool, typer.Option("--include-builtins", help="Include callees defined in Python's builtins module.")] = False,
 ) -> None:
     err_console = Console(stderr=True)
     code_graph_result = _find_code_graph(file_path)
@@ -45,8 +48,11 @@ def enrich(
         print(json.dumps(result.result, indent=2))
 
 
-@app.command()
-def init(path: str, timeout_seconds: Annotated[Optional[int], typer.Option("--timeout-seconds", "-t", metavar=f"{DEFAULT_INIT_TIMEOUT_SECONDS}", help="Timeout in seconds.")]=DEFAULT_INIT_TIMEOUT_SECONDS) -> None:
+@app.command(help="Initialize analysis.")
+def init(
+        path: Annotated[str, typer.Argument(metavar=".", help="Path to directory containing Python code.")],
+        timeout_seconds: Annotated[Optional[int], typer.Option("--timeout-seconds", "-t", metavar=f"{DEFAULT_INIT_TIMEOUT_SECONDS}", help="Timeout in seconds.")]=DEFAULT_INIT_TIMEOUT_SECONDS
+) -> None:
     err_console = Console(stderr=True)
     abspath = os.path.abspath(path)
     print(f"Initializing {abspath}")
@@ -88,7 +94,6 @@ def _find_code_graph(file_path: str) -> CodeGraphResult:
                 break
 
     return code_graph_result
-
 
 def main() -> None:
     app()
