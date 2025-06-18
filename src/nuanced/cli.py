@@ -7,6 +7,20 @@ from nuanced import CodeGraph, __version__
 from nuanced.code_graph import CodeGraphResult, DEFAULT_INIT_TIMEOUT_SECONDS
 from typing_extensions import Annotated, Optional
 
+
+typer.rich_utils.STYLE_NEGATIVE_SWITCH = "bold indian_red"
+typer.rich_utils.STYLE_DEPRECATED = "indian_red"
+typer.rich_utils.STYLE_REQUIRED_SHORT = "indian_red"
+typer.rich_utils.STYLE_REQUIRED_LONG = "dim indian_red"
+typer.rich_utils.STYLE_ERRORS_PANEL_BORDER = "indian_red"
+typer.rich_utils.STYLE_ABORTED = "indian_red"
+typer.rich_utils.STYLE_OPTION = "bold deep_sky_blue1"
+typer.rich_utils.STYLE_COMMANDS_TABLE_FIRST_COLUMN = "bold medium_orchid"
+typer.rich_utils.STYLE_METAVAR = "bold medium_orchid"
+typer.rich_utils.STYLE_USAGE = "medium_orchid"
+typer.rich_utils.STYLE_OPTION_ENVVAR = "dim deep_sky_blue1"
+typer.rich_utils.STYLE_SWITCH = "bold plum1"
+
 app = typer.Typer(
     context_settings={"help_option_names": ["-h", "--help"]},
     help="Python code intelligence for agentic developer workflows."
