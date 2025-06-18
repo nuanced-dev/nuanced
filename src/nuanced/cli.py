@@ -74,10 +74,10 @@ def cli(
         raise typer.Exit()
 
 def _find_code_graph(file_path: str) -> CodeGraphResult:
-    file_directory, _file_name = os.path.split(file_path)
-    code_graph_result = CodeGraph.load(directory=file_directory)
+    code_graph_result = CodeGraph.load(directory=os.getcwd())
 
     if len(code_graph_result.errors) > 0:
+        file_directory, _file_name = os.path.split(file_path)
         top_directory = file_directory.split("/")[0]
 
         for root, dirs, _files in os.walk(top_directory, topdown=False):
