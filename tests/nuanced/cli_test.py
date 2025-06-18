@@ -7,7 +7,7 @@ from nuanced.cli import app
 from nuanced.code_graph import CodeGraphResult, EnrichmentResult, DEFAULT_INIT_TIMEOUT_SECONDS
 
 
-runner = CliRunner(mix_stderr=False)
+runner = CliRunner()
 
 
 def test_version_displays_installed_version():
