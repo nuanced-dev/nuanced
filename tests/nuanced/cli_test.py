@@ -4,7 +4,7 @@ import os
 from typer.testing import CliRunner
 from nuanced import CodeGraph, __version__
 from nuanced.cli import app
-from nuanced.code_graph import CodeGraphResult, EnrichmentResult
+from nuanced.code_graph import CodeGraphResult, EnrichmentResult, DEFAULT_INIT_TIMEOUT_SECONDS
 
 
 runner = CliRunner(mix_stderr=False)
@@ -177,3 +177,31 @@ def test_enrich_disables_include_builtins_option_by_default(mocker):
 
     diff = DeepDiff(expected_enrich_args, code_graph_spy.mock_calls[0].kwargs)
     assert diff == {}
+
+def test_init_applies_timeout_when_present(mocker) -> None:
+    code_graph = mocker.MagicMock()
+    mocker.patch(
+        "nuanced.cli.CodeGraph.init",
+        lambda directory, timeout_seconds: CodeGraphResult(code_graph=code_graph, errors=[]),
+    )
+    init_spy = mocker.spy(CodeGraph, "init")
+    path = "."
+    abspath = os.path.abspath(path)
+
+    runner.invoke(app, ["init", path, "--timeout-seconds", "30"])
+
+    init_spy.assert_called_with(abspath, timeout_seconds=30)
+
+def test_init_applies_default_timeout(mocker) -> None:
+    code_graph = mocker.MagicMock()
+    mocker.patch(
+        "nuanced.cli.CodeGraph.init",
+        lambda directory, timeout_seconds: CodeGraphResult(code_graph=code_graph, errors=[]),
+    )
+    init_spy = mocker.spy(CodeGraph, "init")
+    path = "."
+    abspath = os.path.abspath(path)
+
+    runner.invoke(app, ["init", path])
+
+    init_spy.assert_called_with(abspath, timeout_seconds=DEFAULT_INIT_TIMEOUT_SECONDS)

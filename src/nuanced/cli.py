@@ -4,7 +4,8 @@ import typer
 from rich import print
 from rich.console import Console
 from nuanced import CodeGraph, __version__
-from nuanced.code_graph import CodeGraphResult
+from nuanced.code_graph import CodeGraphResult, DEFAULT_INIT_TIMEOUT_SECONDS
+from typing_extensions import Annotated, Optional
 
 app = typer.Typer()
 
@@ -46,11 +47,11 @@ def enrich(
 
 
 @app.command()
-def init(path: str) -> None:
+def init(path: str, timeout_seconds: Annotated[Optional[int], typer.Option("--timeout-seconds", "-t", metavar=f"{DEFAULT_INIT_TIMEOUT_SECONDS}", help="Timeout in seconds.")]=DEFAULT_INIT_TIMEOUT_SECONDS) -> None:
     err_console = Console(stderr=True)
     abspath = os.path.abspath(path)
     print(f"Initializing {abspath}")
-    result = CodeGraph.init(abspath)
+    result = CodeGraph.init(abspath, timeout_seconds=timeout_seconds)
 
     if len(result.errors) > 0:
         for error in result.errors:
