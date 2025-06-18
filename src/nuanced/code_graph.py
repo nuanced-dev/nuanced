@@ -11,15 +11,15 @@ from nuanced.lib.utils import with_timeout
 CodeGraphResult = namedtuple("CodeGraphResult", ["errors", "code_graph"])
 EnrichmentResult = namedtuple("EnrichmentResult", ["errors", "result"])
 
+DEFAULT_INIT_TIMEOUT_SECONDS = 60
 
 class CodeGraph():
     ELIGIBLE_FILE_TYPE_PATTERN = "*.py"
-    INIT_TIMEOUT_SECONDS = 60
     NUANCED_DIRNAME = ".nuanced"
     NUANCED_GRAPH_FILENAME = "nuanced-graph.json"
 
     @classmethod
-    def init(cls, path: str) -> CodeGraphResult:
+    def init(cls, path: str, *, timeout_seconds: int=DEFAULT_INIT_TIMEOUT_SECONDS) -> CodeGraphResult:
         errors = []
         code_graph = None
         absolute_path_to_package = os.path.abspath(path)
@@ -47,7 +47,7 @@ class CodeGraph():
                     target=call_graph.generate,
                     args=(eligible_absolute_filepaths),
                     kwargs=({"package_path": absolute_path_to_package}),
-                    timeout=cls.INIT_TIMEOUT_SECONDS,
+                    timeout=timeout_seconds,
                 )
                 call_graph_dict = call_graph_result.value
 

@@ -5,6 +5,7 @@ import pytest
 from pathlib import Path, PosixPath
 import nuanced
 from nuanced import CodeGraph
+from nuanced.code_graph import DEFAULT_INIT_TIMEOUT_SECONDS
 from nuanced.lib.call_graph import generate, BUILTIN_FUNCTION_PREFIX
 from nuanced.lib.utils import WithTimeoutResult
 
@@ -15,6 +16,27 @@ def generate_call_graph(target, args, kwargs, timeout):
 def timeout_call_graph_generation(target, args, kwargs, timeout):
     errors = [multiprocessing.TimeoutError("Operation timed out")]
     return WithTimeoutResult(errors=errors, value=None)
+
+def test_init_with_timeout_applies_timeout(mocker) -> None:
+    mocker.patch("nuanced.code_graph.with_timeout", generate_call_graph)
+    with_timeout_spy = mocker.spy(nuanced.code_graph, "with_timeout")
+    path = "tests/package_fixtures"
+    timeout_seconds = 1
+
+    CodeGraph.init(path, timeout_seconds=timeout_seconds)
+
+    received_timeout = with_timeout_spy.call_args.kwargs["timeout"]
+    assert received_timeout == timeout_seconds
+
+def test_init_without_timeout_applies_default_timeout(mocker) -> None:
+    mocker.patch("nuanced.code_graph.with_timeout", generate_call_graph)
+    with_timeout_spy = mocker.spy(nuanced.code_graph, "with_timeout")
+    path = "tests/package_fixtures"
+
+    CodeGraph.init(path)
+
+    received_timeout = with_timeout_spy.call_args.kwargs["timeout"]
+    assert received_timeout == DEFAULT_INIT_TIMEOUT_SECONDS
 
 def test_init_with_valid_path_generates_graph_with_expected_files(mocker) -> None:
     mocker.patch("os.makedirs", lambda _dirname, exist_ok=True: None)
