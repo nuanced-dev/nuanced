@@ -31,8 +31,8 @@ ERROR_EXIT_CODE = 1
 
 @app.command(help="Enrich a function and its callees and print enriched function call graph as JSON.")
 def enrich(
-    file_path: Annotated[str, typer.Argument(metavar="src/foo/bar.py", help="Path to file containing function definition.")],
-    function_name: Annotated[str, typer.Argument(metavar="hello_world", help="Partial or fully qualified name of function.")],
+    file_path: Annotated[str, typer.Argument(help="Path to file containing function definition.")],
+    function_name: Annotated[str, typer.Argument(help="Partial or fully qualified name of function.")],
     include_builtins: Annotated[bool, typer.Option("--include-builtins", help="Include callees defined in Python's builtins module.")] = False,
 ) -> None:
     err_console = Console(stderr=True)
@@ -64,8 +64,8 @@ def enrich(
 
 @app.command(help="Initialize analysis.")
 def init(
-        path: Annotated[str, typer.Argument(metavar=".", help="Path to directory containing Python code.")],
-        timeout_seconds: Annotated[Optional[int], typer.Option("--timeout-seconds", "-t", metavar=f"{DEFAULT_INIT_TIMEOUT_SECONDS}", help="Timeout in seconds.")]=DEFAULT_INIT_TIMEOUT_SECONDS
+   path: Annotated[str, typer.Argument(help="Path to directory containing Python code.")],
+   timeout_seconds: Annotated[Optional[int], typer.Option("--timeout-seconds", "-t", help="Timeout in seconds.")]=DEFAULT_INIT_TIMEOUT_SECONDS
 ) -> None:
     err_console = Console(stderr=True)
     abspath = os.path.abspath(path)
