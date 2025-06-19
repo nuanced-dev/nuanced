@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.8] - 2025-06-19
+
+### Added
+
+- Add support for overriding the default (60s) initialization timeout threshold (https://github.com/nuanced-dev/nuanced/pull/90)
+  - CLI usage: `nuanced init . --timeout-seconds 30`
+  - Python API usage: `CodeGraph.init(".", timeout_seconds=30)`
+- Add short option for displaying nuanced CLI help (https://github.com/nuanced-dev/nuanced/pull/91)
+  - Usage: `nuanced -h`
+- Add CLI command and option descriptions (https://github.com/nuanced-dev/nuanced/pull/91)
+- Add support for initializing analysis for all Python code in a directory (https://github.com/nuanced-dev/nuanced/pull/90)
+
+### Fixed
+
+### Changed
+
 ## [0.1.7] - 2025-06-05
 
 ### Added
