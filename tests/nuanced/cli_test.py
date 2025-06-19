@@ -4,7 +4,7 @@ import os
 from typer.testing import CliRunner
 from nuanced import CodeGraph, __version__
 from nuanced.cli import app
-from nuanced.code_graph import CodeGraphResult, EnrichmentResult
+from nuanced.code_graph import CodeGraphResult, EnrichmentResult, DEFAULT_INIT_TIMEOUT_SECONDS
 
 
 runner = CliRunner(mix_stderr=False)
@@ -15,7 +15,8 @@ def test_version_displays_installed_version():
 
     assert result.stdout == f"nuanced {__version__}\n"
 
-def test_enrich_finds_relevant_graph_in_file_dir(mocker):
+def test_enrich_finds_relevant_graph_in_cwd(mocker):
+    cwd_abspath = os.getcwd()
     graph = { "foo.bar": { "filepath": os.path.abspath("foo.py"), "callees": [] } }
     code_graph = CodeGraph(graph=graph)
     mocker.patch(
@@ -26,11 +27,11 @@ def test_enrich_finds_relevant_graph_in_file_dir(mocker):
 
     runner.invoke(app, ["enrich", "foo.py", "bar"])
 
-    load_spy.assert_called_with(directory="")
+    load_spy.assert_called_with(directory=cwd_abspath)
 
 def test_enrich_finds_relevant_graph_in_file_path_parent_dir(mocker):
     file_path = "foo/bar/baz.py"
-    file_dir, _ = os.path.split(file_path)
+    cwd_abspath = os.getcwd()
     top_dir = "foo"
     top_dir_contents = (top_dir, [CodeGraph.NUANCED_DIRNAME, "bar"], ["__init__.py"])
     stub_graph = {}
@@ -39,9 +40,9 @@ def test_enrich_finds_relevant_graph_in_file_path_parent_dir(mocker):
     mocker.patch("os.walk", lambda directory: [top_dir_contents])
     mocker.patch(
         "nuanced.cli.CodeGraph.load",
-        lambda directory: result_with_errors if directory == file_dir else valid_result
+        lambda directory: result_with_errors if directory == cwd_abspath else valid_result
     )
-    expected_calls = [mocker.call(directory=file_dir)]
+    expected_calls = [mocker.call(directory=cwd_abspath)]
     load_spy = mocker.spy(CodeGraph, "load")
 
     runner.invoke(app, ["enrich", file_path, "hello_world"])
@@ -197,3 +198,31 @@ def test_enrich_disables_include_builtins_option_by_default(mocker):
 
     diff = DeepDiff(expected_enrich_args, code_graph_spy.mock_calls[0].kwargs)
     assert diff == {}
+
+def test_init_applies_timeout_when_present(mocker) -> None:
+    code_graph = mocker.MagicMock()
+    mocker.patch(
+        "nuanced.cli.CodeGraph.init",
+        lambda directory, timeout_seconds: CodeGraphResult(code_graph=code_graph, errors=[]),
+    )
+    init_spy = mocker.spy(CodeGraph, "init")
+    path = "."
+    abspath = os.path.abspath(path)
+
+    runner.invoke(app, ["init", path, "--timeout-seconds", "30"])
+
+    init_spy.assert_called_with(abspath, timeout_seconds=30)
+
+def test_init_applies_default_timeout(mocker) -> None:
+    code_graph = mocker.MagicMock()
+    mocker.patch(
+        "nuanced.cli.CodeGraph.init",
+        lambda directory, timeout_seconds: CodeGraphResult(code_graph=code_graph, errors=[]),
+    )
+    init_spy = mocker.spy(CodeGraph, "init")
+    path = "."
+    abspath = os.path.abspath(path)
+
+    runner.invoke(app, ["init", path])
+
+    init_spy.assert_called_with(abspath, timeout_seconds=DEFAULT_INIT_TIMEOUT_SECONDS)

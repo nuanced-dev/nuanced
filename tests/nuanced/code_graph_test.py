@@ -5,6 +5,7 @@ import pytest
 from pathlib import Path, PosixPath
 import nuanced
 from nuanced import CodeGraph
+from nuanced.code_graph import DEFAULT_INIT_TIMEOUT_SECONDS
 from nuanced.lib.call_graph import generate, BUILTIN_FUNCTION_PREFIX
 from nuanced.lib.utils import WithTimeoutResult
 
@@ -15,6 +16,27 @@ def generate_call_graph(target, args, kwargs, timeout):
 def timeout_call_graph_generation(target, args, kwargs, timeout):
     errors = [multiprocessing.TimeoutError("Operation timed out")]
     return WithTimeoutResult(errors=errors, value=None)
+
+def test_init_with_timeout_applies_timeout(mocker) -> None:
+    mocker.patch("nuanced.code_graph.with_timeout", generate_call_graph)
+    with_timeout_spy = mocker.spy(nuanced.code_graph, "with_timeout")
+    path = "tests/package_fixtures"
+    timeout_seconds = 1
+
+    CodeGraph.init(path, timeout_seconds=timeout_seconds)
+
+    received_timeout = with_timeout_spy.call_args.kwargs["timeout"]
+    assert received_timeout == timeout_seconds
+
+def test_init_without_timeout_applies_default_timeout(mocker) -> None:
+    mocker.patch("nuanced.code_graph.with_timeout", generate_call_graph)
+    with_timeout_spy = mocker.spy(nuanced.code_graph, "with_timeout")
+    path = "tests/package_fixtures"
+
+    CodeGraph.init(path)
+
+    received_timeout = with_timeout_spy.call_args.kwargs["timeout"]
+    assert received_timeout == DEFAULT_INIT_TIMEOUT_SECONDS
 
 def test_init_with_valid_path_generates_graph_with_expected_files(mocker) -> None:
     mocker.patch("os.makedirs", lambda _dirname, exist_ok=True: None)
@@ -41,16 +63,6 @@ def test_init_with_valid_path_generates_graph_with_expected_files(mocker) -> Non
     assert received_package_path == expected_package
     for e in received_entry_points:
         assert e in expected_filepaths
-
-def test_init_with_no_package_definitions_in_directory_returns_errors(mocker) -> None:
-    path = "."
-    expected_error_message = f"No package definition found in {os.path.abspath(path)}: `__init__.py` missing"
-
-    code_graph_result = CodeGraph.init(path)
-
-    assert len(code_graph_result.errors) == 1
-    assert type(code_graph_result.errors[0]) == ValueError
-    assert str(code_graph_result.errors[0]) == expected_error_message
 
 def test_init_with_invalid_path_returns_errors(mocker) -> None:
     invalid_path = "foo"

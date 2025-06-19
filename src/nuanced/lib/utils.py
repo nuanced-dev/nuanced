@@ -35,3 +35,37 @@ def with_timeout(target, args, kwargs, timeout):
     process.join()
 
     return WithTimeoutResult(errors=errors, value=value)
+
+def grouped_by_package(file_paths: list[str]):
+    packages = {}
+    package_roots = set()
+
+    package_definition_file_paths = list(filter(lambda p: p.endswith("__init__.py"), file_paths))
+
+    for path in package_definition_file_paths:
+        package_root = path.rsplit("/", 1)[0]
+        is_nested_package = any(package_root.startswith(p) for p in package_roots)
+        if not is_nested_package:
+            package_roots.add(package_root)
+
+    for path in file_paths:
+        for package_root in package_roots:
+            if path.startswith(package_root + "/"):
+                if package_root not in packages:
+                    packages[package_root] = []
+                packages[package_root].append(path)
+                break
+
+    return packages
+
+def grouped_by_directory(file_paths: list[str]):
+    directory_groups = {}
+
+    for path in file_paths:
+        directory = path.rsplit("/", 1)[0]
+
+        if directory not in directory_groups:
+            directory_groups[directory] = []
+        directory_groups[directory].append(path)
+
+    return directory_groups
