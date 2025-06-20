@@ -55,16 +55,16 @@ wheels = [
 
 [[package]]
 name = "jarviscg"
-version = "0.1.0rc6"
+version = "0.1.0rc7"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "deepdiff" },
     { name = "pytest" },
     { name = "setuptools" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/e0/86/bb459ed041824576c13a092c4f7370c52d45167ab16c2fee38025fa2eb33/jarviscg-0.1.0rc6.tar.gz", hash = "sha256:47b50c59515ccd325c2a07a24244c547efc20bb7aa5687e7c69d26fa02b02929", size = 54253795 }
+sdist = { url = "https://files.pythonhosted.org/packages/ba/0f/c88c717409987afe5b486e939e73c37d83bbf0a93bb767ef0b2d5346fa98/jarviscg-0.1.0rc7.tar.gz", hash = "sha256:3d651bb9847e485dcf4438201f4c19dbb3de9db4d03933eb03b4af3cfaab5833", size = 54252331 }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/c7/9c/38d5e062bee0a470ee1737d66008e25b3023a2901870f2984a3063f155d4/jarviscg-0.1.0rc6-py3-none-any.whl", hash = "sha256:92a40cb03bc47eada2170ea6656d389fc53a0d7dcb0e8ec74a72a2e529a85cc9", size = 49843 },
+    { url = "https://files.pythonhosted.org/packages/ad/f9/5e0e67422db686e61cac891ca02f30d851184905bc723f56fa0cf28f5b4b/jarviscg-0.1.0rc7-py3-none-any.whl", hash = "sha256:ba5e1645e99ca06c35030be8453a62a5e41abb13b9ffac47cb6d7b72e9573e92", size = 47273 },
 ]
 
 [[package]]
@@ -107,7 +107,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "jarviscg", specifier = "==0.1.0rc6" },
+    { name = "jarviscg", specifier = "==0.1.0rc7" },
     { name = "setuptools", specifier = ">=75.3.0" },
     { name = "typer", specifier = ">=0.16.0" },
 ]
