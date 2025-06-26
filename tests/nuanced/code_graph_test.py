@@ -74,11 +74,13 @@ def test_init_with_invalid_path_returns_errors(mocker) -> None:
 
 def test_init_with_no_eligible_files_returns_errors(mocker) -> None:
     no_eligible_files_path = "tests/package_fixtures/ineligible"
+    os.mkdir(no_eligible_files_path)
 
     code_graph_result = CodeGraph.init(no_eligible_files_path)
 
     assert len(code_graph_result.errors) == 1
     assert str(code_graph_result.errors[0]) == f"No eligible files found in {os.path.abspath(no_eligible_files_path)}"
+    os.rmdir(no_eligible_files_path)
 
 def test_init_with_valid_path_persists_code_graph(mocker) -> None:
     mocker.patch("os.makedirs", lambda _dirname, exist_ok=True: None)
